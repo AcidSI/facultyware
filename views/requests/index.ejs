@@ -1,0 +1,91 @@
+<%- include('../partials/_head.ejs') %>
+
+<div class="p-4 md:p-6 xl:p-12">
+  <div class="max-w-screen-lg mx-auto">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Riwayat Permohonan</h1>
+        <p class="text-muted-foreground">Daftar permohonan surat aktif dan kelulusan Anda.</p>
+      </div>
+      <a href="/requests/create" class="btn" hx-boost="true">
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Buat Permohonan Baru
+      </a>
+    </header>
+
+    <%# --- Search --- %>
+    <form method="GET" action="/requests" class="mb-4 flex gap-2">
+      <input
+        type="text" name="search" value="<%= search %>"
+        class="input w-full max-w-sm"
+        placeholder="Cari nomor surat, judul, atau jenis..."
+      >
+      <button type="submit" class="btn-outline">Cari</button>
+      <% if (search) { %>
+        <a href="/requests" class="btn-sm-ghost self-center">Hapus Filter</a>
+      <% } %>
+    </form>
+
+    <div class="card overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>No Surat</th>
+            <th>Jenis</th>
+            <th>Keperluan</th>
+            <th>Tanggal Pengajuan</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (requests.length > 0) { %>
+            <% requests.forEach(r => { %>
+              <tr>
+                <td class="font-medium text-xs font-mono"><%= r.request_nunmber %></td>
+                <td class="uppercase text-xs font-bold text-muted-foreground"><%= r.request_type %></td>
+                <td class="max-w-[200px] truncate" title="<%= r.title %>"><%= r.title || '-' %></td>
+                <td><%= new Date(r.requested_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) %></td>
+                <td>
+                  <span class="<%= r.badge.class %> px-2 py-1 text-xs"><%= r.badge.label %></span>
+                </td>
+                <td>
+                  <a href="/requests/<%= r.id %>" class="btn-sm-outline" hx-boost="true">Detail</a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="text-center text-muted-foreground py-10">
+                <% if (search) { %>
+                  Tidak ada permohonan yang cocok dengan "<%= search %>".
+                <% } else { %>
+                  Belum ada data permohonan.
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <%# --- Pagination --- %>
+    <% if (pagination.totalPages > 1) { %>
+      <div class="flex justify-center items-center gap-2 mt-6">
+        <% if (pagination.page > 1) { %>
+          <a href="/requests?page=<%= pagination.page - 1 %>&search=<%= search %>" class="btn-sm-outline">← Sebelumnya</a>
+        <% } %>
+        <span class="text-sm text-muted-foreground">
+          Halaman <%= pagination.page %> dari <%= pagination.totalPages %>
+          &nbsp;(Total: <%= pagination.total %> permohonan)
+        </span>
+        <% if (pagination.page < pagination.totalPages) { %>
+          <a href="/requests?page=<%= pagination.page + 1 %>&search=<%= search %>" class="btn-sm-outline">Selanjutnya →</a>
+        <% } %>
+      </div>
+    <% } %>
+
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

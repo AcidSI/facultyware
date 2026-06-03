@@ -8,6 +8,8 @@ var MySQLStore = require('express-mysql-session')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var requestsRouter = require('./routes/requests');
+var apiRouter = require('./routes/api');
 const { notFoundHandler, errorHandler } = require('./middlewares/error');
 
 var app = express();
@@ -41,8 +43,11 @@ app.use(session({
   }
 }));
 
+// ✅ PERBAIKAN: Semua router didaftarkan SEBELUM error handler
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/requests', requestsRouter);
+app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(notFoundHandler);
