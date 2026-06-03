@@ -4,7 +4,7 @@ const { getStatusBadge } = require("./requestController");
 
 const index = (req, res) => {
   if (req.session.userId) return res.redirect("/home");
-  res.render("index", { title: "Facultyware" });
+  res.redirect("/login");
 };
 
 const home = async (req, res, next) => {
