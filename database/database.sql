@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS `student_requests` (
   `title` VARCHAR(45) NULL,
   `description` VARCHAR(45) NULL,
   `status` INT NULL,
+  `is_read` TINYINT(1) DEFAULT 0,  -- Kolom baru untuk notifikasi lonceng
   `requested_by` BIGINT UNSIGNED NULL,
   `requested_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
