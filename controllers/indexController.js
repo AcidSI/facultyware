@@ -11,8 +11,8 @@ const redirectByRole = (req, res) => {
 };
 
 const index = (req, res) => {
-  if (req.session.userId) return redirectByRole(req, res);
-  res.render("index", { title: "Facultyware" });
+if (req.session.userId) return redirectByRole(req, res);
+  res.redirect("/login");
 };
 
 const loginPage = (req, res) => {

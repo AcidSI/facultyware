@@ -1,89 +1,54 @@
 <%- include('./partials/_head.ejs') %>
 
-<div class="p-4 md:p-6 xl:p-10">
-  <div class="max-w-4xl mx-auto space-y-8">
+<div class="p-6 md:p-10 ml-2">
+  <div class="max-w-3xl mx-auto space-y-6">
 
     <%# ── Greeting ── %>
-    <div>
+    <div class="mb-2">
       <p class="text-sm text-muted-foreground">Selamat datang kembali,</p>
       <h1 class="text-2xl font-bold tracking-tight mt-0.5"><%= student.name || user %></h1>
     </div>
 
-    <%# ── Profil Mahasiswa ── %>
-    <div class="card p-6">
-      <div class="flex items-start gap-5">
-        <div class="size-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold shrink-0">
-          <%= (student.name || user).charAt(0).toUpperCase() %>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 flex-1">
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">Nama Lengkap</p>
-            <p class="text-sm font-semibold"><%= student.name || '-' %></p>
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">NIM</p>
-            <p class="text-sm font-semibold font-mono"><%= student.regno || '-' %></p>
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">Email</p>
-            <p class="text-sm font-semibold"><%= student.email || student.campus_email || '-' %></p>
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">No. HP</p>
-            <p class="text-sm font-semibold"><%= student.phone_no || '-' %></p>
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">Angkatan</p>
-            <p class="text-sm font-semibold"><%= student.year || '-' %></p>
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground mb-0.5">Status</p>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Aktif</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <%# ── Stats ── %>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="card p-5 flex flex-col gap-2">
-        <p class="text-xs text-muted-foreground">Total Permohonan</p>
-        <p class="text-3xl font-bold"><%= stats.total %></p>
+      <div class="card flex flex-col justify-between p-6 gap-6">
+        <p class="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total</p>
+        <p class="text-5xl font-bold tabular-nums leading-none"><%= stats.total %></p>
       </div>
-      <div class="card p-5 flex flex-col gap-2">
-        <p class="text-xs text-muted-foreground">Menunggu</p>
-        <p class="text-3xl font-bold text-yellow-500"><%= stats.menunggu %></p>
+      <div class="card flex flex-col justify-between p-6 gap-6">
+        <p class="text-xs text-muted-foreground font-medium uppercase tracking-wide">Menunggu</p>
+        <p class="text-5xl font-bold tabular-nums leading-none text-yellow-500"><%= stats.menunggu %></p>
       </div>
-      <div class="card p-5 flex flex-col gap-2">
-        <p class="text-xs text-muted-foreground">Diproses</p>
-        <p class="text-3xl font-bold text-blue-500"><%= stats.diproses %></p>
+      <div class="card flex flex-col justify-between p-6 gap-6">
+        <p class="text-xs text-muted-foreground font-medium uppercase tracking-wide">Diproses</p>
+        <p class="text-5xl font-bold tabular-nums leading-none text-blue-500"><%= stats.diproses %></p>
       </div>
-      <div class="card p-5 flex flex-col gap-2">
-        <p class="text-xs text-muted-foreground">Selesai</p>
-        <p class="text-3xl font-bold text-green-500"><%= stats.selesai %></p>
+      <div class="card flex flex-col justify-between p-6 gap-6">
+        <p class="text-xs text-muted-foreground font-medium uppercase tracking-wide">Selesai</p>
+        <p class="text-5xl font-bold tabular-nums leading-none text-green-500"><%= stats.selesai %></p>
       </div>
     </div>
 
     <%# ── Quick Actions ── %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="card p-6 flex items-start gap-4">
+      <div class="card p-6 flex gap-4 items-start">
         <div class="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         </div>
         <div>
-          <h2 class="font-semibold text-sm mb-1">Buat Permohonan Baru</h2>
+          <p class="font-semibold text-sm mb-1">Buat Permohonan Baru</p>
           <p class="text-xs text-muted-foreground mb-4 leading-relaxed">Ajukan Surat Keterangan Aktif Kuliah atau Surat Keterangan Lulus.</p>
-          <a href="/requests/create" hx-boost="true" class="btn text-sm h-8 px-4">Mulai Pengajuan</a>
+          <a href="/requests/create" hx-boost="true" class="btn text-xs h-8 px-3">Mulai Pengajuan</a>
         </div>
       </div>
-      <div class="card p-6 flex items-start gap-4">
+      <div class="card p-6 flex gap-4 items-start">
         <div class="size-9 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0 mt-0.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
         <div>
-          <h2 class="font-semibold text-sm mb-1">Cek Status Permohonan</h2>
+          <p class="font-semibold text-sm mb-1">Cek Status Permohonan</p>
           <p class="text-xs text-muted-foreground mb-4 leading-relaxed">Pantau progres verifikasi dan penandatanganan surat Anda.</p>
-          <a href="/requests" hx-boost="true" class="btn-outline text-sm h-8 px-4">Lihat Riwayat</a>
+          <a href="/requests" hx-boost="true" class="btn-outline text-xs h-8 px-3">Lihat Riwayat</a>
         </div>
       </div>
     </div>
@@ -92,36 +57,38 @@
     <% if (recentRequests && recentRequests.length > 0) { %>
     <div>
       <div class="flex justify-between items-center mb-3">
-        <h2 class="font-semibold text-sm">Permohonan Terbaru</h2>
+        <p class="font-semibold text-sm">Permohonan Terbaru</p>
         <a href="/requests" hx-boost="true" class="text-xs text-primary hover:underline">Lihat semua →</a>
       </div>
-      <div class="card overflow-x-auto">
-        <table class="table">
+      <div class="card overflow-hidden">
+        <table class="table w-full text-sm">
           <thead>
-            <tr>
-              <th class="text-xs text-muted-foreground font-medium">No Surat</th>
-              <th class="text-xs text-muted-foreground font-medium">Keperluan</th>
-              <th class="text-xs text-muted-foreground font-medium">Jenis</th>
-              <th class="text-xs text-muted-foreground font-medium">Status</th>
-              <th class="text-xs text-muted-foreground font-medium">Aksi</th>
+<tr class="bg-muted/60">
+              <th class="text-xs font-semibold text-muted-foreground px-4 py-3 text-left uppercase tracking-wide">No Surat</th>
+              <th class="text-xs font-semibold text-muted-foreground px-4 py-3 text-left uppercase tracking-wide">Keperluan</th>
+              <th class="text-xs font-semibold text-muted-foreground px-4 py-3 text-left uppercase tracking-wide">Jenis</th>
+              <th class="text-xs font-semibold text-muted-foreground px-4 py-3 text-left uppercase tracking-wide">Status</th>
+              <th class="text-xs font-semibold text-muted-foreground px-4 py-3 text-left uppercase tracking-wide">Aksi</th>
+            </tr>
             </tr>
           </thead>
           <tbody>
             <% recentRequests.forEach(r => { %>
-            <tr>
-              <td class="font-mono text-xs text-muted-foreground"><%= r.request_nunmber %></td>
-              <td class="text-sm max-w-[200px] truncate"><%= r.title || '-' %></td>
-              <td class="uppercase text-xs text-muted-foreground font-semibold"><%= r.request_type %></td>
-             <td>
-  <span class="<%= r.badge.class %> px-2 py-0.5 rounded text-xs"><%= r.badge.label %></span>
-</td>
-<td>
-  <% if (r.status === 3) { %>
-    <a href="/requests/<%= r.id %>/download" target="_blank" class="text-xs text-green-600 hover:underline font-semibold">
-      Unduh PDF
-    </a>
-  <% } %>
-</td>
+<tr class="border-t hover:bg-muted/30 transition-colors">
+              <td class="px-4 py-3 font-mono text-xs text-muted-foreground"><%= r.request_nunmber %></td>
+              <td class="px-4 py-3 max-w-[180px] truncate"><%= r.title || '-' %></td>
+              <td class="px-4 py-3 uppercase text-xs font-semibold text-muted-foreground"><%= r.request_type %></td>
+              <td class="px-4 py-3">
+                <span class="<%= r.badge.class %> px-2 py-0.5 rounded text-xs whitespace-nowrap"><%= r.badge.label %></span>
+              </td>
+              <td class="px-4 py-3">
+                <% if (r.status === 3) { %>
+                  <a href="/requests/<%= r.id %>/download" target="_blank" class="text-xs text-green-600 hover:underline font-semibold">
+                    Unduh PDF
+                  </a>
+                <% } %>
+              </td>
+            </tr>
             </tr>
             <% }) %>
           </tbody>
