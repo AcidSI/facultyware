@@ -1,0 +1,86 @@
+<%- include('../partials/_head_admin.ejs') %>
+
+<div class="p-4 md:p-6 xl:p-12">
+  <div class="max-w-screen-xl mx-auto">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Verifikasi Permohonan</h1>
+        <p class="text-muted-foreground">Daftar permohonan mahasiswa yang memerlukan verifikasi berkas KRS.</p>
+      </div>
+    </header>
+
+    <form method="GET" action="/admin/requests" class="mb-4 flex gap-2">
+      <input
+        type="text" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>"
+        class="input w-full max-w-sm"
+        placeholder="Cari nama, NIM, atau nomor surat..."
+      >
+      <button type="submit" class="btn-outline">Cari</button>
+      <% if (typeof search !== 'undefined' && search) { %>
+        <a href="/admin/requests" class="btn-sm-ghost self-center">Hapus Filter</a>
+      <% } %>
+    </form>
+
+    <div class="card overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>No Surat</th>
+            <th>Nama Mahasiswa</th>
+            <th>NIM</th>
+            <th>Jenis</th>
+            <th>Tanggal Pengajuan</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (requests && requests.length > 0) { %>
+            <% requests.forEach(r => { %>
+              <tr>
+                <td class="font-medium text-xs font-mono"><%= r.request_nunmber %></td>
+                <td class="font-medium"><%= r.student_name %></td>
+                <td><%= r.nim %></td>
+                <td class="uppercase text-xs font-bold text-muted-foreground"><%= r.request_type %></td>
+                <td><%= new Date(r.requested_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) %></td>
+                <td>
+                  <span class="<%= r.badge ? r.badge.class : 'badge badge-outline' %> px-2 py-1 text-xs"><%= r.badge ? r.badge.label : 'Menunggu' %></span>
+                </td>
+                <td>
+                  <a href="/admin/requests/<%= r.id %>" class="btn-sm-outline" hx-boost="true">Cek Berkas</a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center text-muted-foreground py-10">
+                <% if (typeof search !== 'undefined' && search) { %>
+                  Tidak ada permohonan yang cocok dengan pencarian.
+                <% } else { %>
+                  Belum ada data permohonan masuk.
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
+      <div class="flex justify-center items-center gap-2 mt-6">
+        <% if (pagination.page > 1) { %>
+          <a href="/admin/requests?page=<%= pagination.page - 1 %>&search=<%= search %>" class="btn-sm-outline">← Sebelumnya</a>
+        <% } %>
+        <span class="text-sm text-muted-foreground">
+          Halaman <%= pagination.page %> dari <%= pagination.totalPages %>
+        </span>
+        <% if (pagination.page < pagination.totalPages) { %>
+          <a href="/admin/requests?page=<%= pagination.page + 1 %>&search=<%= search %>" class="btn-sm-outline">Selanjutnya →</a>
+        <% } %>
+      </div>
+    <% } %>
+
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

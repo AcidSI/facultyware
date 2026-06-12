@@ -1,17 +1,22 @@
 var express = require("express");
 var router = express.Router();
 const indexController = require("../controllers/indexController");
-const { isAuthenticated } = require("../middlewares/auth");
 
-/* GET home page. */
+const { isAuthenticated, isGuest } = require("../middlewares/auth");
+const { checkRole } = require("../middlewares/acl");
+
+// ✅ 1. PANGGIL MESIN PENGHITUNG LONCENG DI SINI
+const { getUnreadCount } = require("../middlewares/notification");
+
+/* GET home page (Landing Page Publik) */
 router.get("/", indexController.index);
 
-router.get("/home", isAuthenticated, indexController.home);
+router.get("/login", isGuest, indexController.loginPage);
+router.post("/login", isGuest, indexController.login);
 
-router.get("/login", indexController.loginPage);
+// ✅ 2. SISIPKAN getUnreadCount SEBELUM indexController.home
+router.get("/home", isAuthenticated, checkRole('student'), getUnreadCount, indexController.home);
 
-router.post("/login", indexController.login);
-
-router.get("/logout", indexController.logout);
+router.get("/logout", isAuthenticated, indexController.logout);
 
 module.exports = router;

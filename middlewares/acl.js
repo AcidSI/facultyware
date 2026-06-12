@@ -1,28 +1,18 @@
 const db = require("../lib/db");
 
-/**
- * ACL Middleware - cek apakah user punya permission yang dibutuhkan.
- * Menggunakan tabel model_has_roles (sesuai skema Spatie Laravel Permission).
- *
- * @param {string|string[]} requiredPermissions - satu permission atau array (OR logic)
- */
+// --- BIARKAN FUNGSI ASLI ANDA TETAP ADA ---
 const checkPermission = (requiredPermissions) => {
   return async (req, res, next) => {
     if (!req.session.userId) {
-      // Jika request dari API (Accept: application/json), kembalikan JSON
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(401).json({ status: "error", message: "Unauthorized" });
       }
       return res.redirect("/login");
     }
 
-    const permissionsArray = Array.isArray(requiredPermissions)
-      ? requiredPermissions
-      : [requiredPermissions];
+    const permissionsArray = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
 
     try {
-      // ✅ PERBAIKAN: Query menggunakan model_has_roles (bukan user_has_roles)
-      // dan model_type sesuai konvensi Spatie
       const [rows] = await db.query(
         `SELECT DISTINCT p.name
          FROM permissions p
@@ -38,7 +28,6 @@ const checkPermission = (requiredPermissions) => {
         return next();
       }
 
-      // Jika tidak punya permission
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(403).json({ status: "error", message: "Forbidden" });
       }
@@ -53,4 +42,27 @@ const checkPermission = (requiredPermissions) => {
   };
 };
 
-module.exports = { checkPermission };
+// --- TAMBAHKAN FUNGSI BARU INI SEBAGAI PENGATUR LALU LINTAS ---
+const checkRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.session || !req.session.role) {
+      return res.redirect('/login');
+    }
+
+    const userRole = req.session.role.toLowerCase();
+
+    // Jika perannya sesuai dengan yang diizinkan rute, silakan masuk
+    if (allowedRoles.includes(userRole)) {
+      return next();
+    }
+
+    // JIKA SALAH KAMAR: Jangan tampilkan Error, arahkan kembali dengan halus!
+    if (userRole === 'admin') return res.redirect('/admin/requests');
+    if (userRole === 'dekan' || userRole === 'wakil dekan') return res.redirect('/dekan/requests');
+    
+    // Default tendang ke portal mahasiswa
+    return res.redirect('/home');
+  };
+};
+
+module.exports = { checkPermission, checkRole };

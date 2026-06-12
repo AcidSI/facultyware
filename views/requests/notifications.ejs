@@ -1,0 +1,48 @@
+<%- include('../partials/_head.ejs') %>
+
+<div class="p-4 md:p-6 xl:p-10">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold tracking-tight mb-6">Notifikasi Anda</h1>
+
+    <div class="space-y-4">
+      <% if (notifs && notifs.length > 0) { %>
+        <% notifs.forEach(n => { %>
+          <div class="card p-5 flex items-start gap-4 transition-all hover:border-primary/50">
+            <%# Ikon berdasarkan status %>
+            <div class="size-10 rounded-full flex items-center justify-center shrink-0 <%= n.status === 3 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' %>">
+              <% if (n.status === 3) { %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <% } else { %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <% } %>
+            </div>
+
+            <div class="flex-1">
+              <div class="flex justify-between items-start mb-1">
+                <p class="text-sm font-semibold">
+                  <%= n.status === 3 ? 'Permohonan Selesai' : 'Permohonan Ditolak' %>
+                </p>
+                <span class="text-xs text-muted-foreground"><%= new Date(n.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) %></span>
+              </div>
+              <p class="text-sm text-muted-foreground mb-3">
+                Surat keterangan <%= n.request_type %> dengan keperluan <strong>"<%= n.title %>"</strong> telah diproses.
+              </p>
+              
+              <div class="flex items-center gap-3">
+                <span class="<%= n.badge.class %> px-2 py-0.5 rounded text-xs"><%= n.badge.label %></span>
+                <a href="/requests/<%= n.id %>" class="text-xs text-primary font-medium hover:underline">Lihat Detail →</a>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="text-center py-12 border-2 border-dashed rounded-xl bg-muted/20">
+          <p class="text-muted-foreground">Belum ada notifikasi baru untuk Anda.</p>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

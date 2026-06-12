@@ -50,8 +50,17 @@
                   <span class="<%= r.badge.class %> px-2 py-1 text-xs"><%= r.badge.label %></span>
                 </td>
                 <td>
-                  <a href="/requests/<%= r.id %>" class="btn-sm-outline" hx-boost="true">Detail</a>
-                </td>
+  <div class="flex items-center gap-2">
+    <a href="/requests/<%= r.id %>" class="btn-sm-outline" hx-boost="true">Detail</a>
+    
+    <%# Tombol Unduh hanya muncul jika statusnya 3 (Selesai) %>
+    <% if (r.status === 3) { %>
+      <a href="/requests/<%= r.id %>/download" target="_blank" class="btn-sm bg-green-600 text-white hover:bg-green-700">
+        Unduh PDF
+      </a>
+    <% } %>
+  </div>
+</td>
               </tr>
             <% }) %>
           <% } else { %>

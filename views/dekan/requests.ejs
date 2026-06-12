@@ -1,0 +1,54 @@
+<%- include('../partials/_head_dekan.ejs') %>
+
+<div class="p-4 md:p-6 xl:p-12">
+  <div class="max-w-screen-xl mx-auto">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Antrean Tanda Tangan</h1>
+        <p class="text-muted-foreground">Daftar permohonan yang telah diverifikasi Admin dan menunggu TTD Digital Dekan.</p>
+      </div>
+    </header>
+
+    <div class="card overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>No Surat</th>
+            <th>Nama Mahasiswa</th>
+            <th>NIM</th>
+            <th>Jenis</th>
+            <th>Tanggal Pengajuan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (requests && requests.length > 0) { %>
+            <% requests.forEach(r => { %>
+              <tr>
+                <td class="font-medium text-xs font-mono"><%= r.request_nunmber %></td>
+                <td class="font-medium"><%= r.student_name %></td>
+                <td><%= r.nim %></td>
+                <td class="uppercase text-xs font-bold text-muted-foreground"><%= r.request_type %></td>
+                <td><%= new Date(r.requested_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) %></td>
+                <td>
+                  <form action="/dekan/requests/<%= r.id %>/sign" method="POST" class="m-0">
+                    <button type="submit" class="btn-sm bg-blue-600 text-white hover:bg-blue-700">Tanda Tangani</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" class="text-center text-muted-foreground py-10">
+                Belum ada antrean surat yang perlu ditandatangani.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

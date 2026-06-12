@@ -1,0 +1,109 @@
+<%- include('../partials/_head_admin.ejs') %>
+
+<div class="p-4 md:p-6 xl:p-12">
+  <div class="max-w-screen-md mx-auto">
+    
+    <div class="mb-6">
+      <a href="/admin/requests" class="btn-sm-ghost text-muted-foreground hover:text-foreground">
+        &larr; Kembali ke Daftar Antrean
+      </a>
+    </div>
+
+    <div class="card p-6">
+      <header class="flex justify-between items-start mb-6 border-b pb-4">
+        <div>
+          <h1 class="text-2xl font-bold">Detail Permohonan</h1>
+          <p class="text-muted-foreground font-mono text-sm mt-1"><%= request.request_nunmber %></p>
+        </div>
+        <span class="<%= request.badge.class %> px-3 py-1 text-sm font-semibold rounded-full">
+          <%= request.badge.label %>
+        </span>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h3 class="text-sm font-semibold text-muted-foreground mb-1">Informasi Mahasiswa</h3>
+          <p class="font-medium"><%= request.student_name %></p>
+          <p class="text-sm">NIM: <%= request.nim %></p>
+        </div>
+        
+        <div>
+          <h3 class="text-sm font-semibold text-muted-foreground mb-1">Detail Surat</h3>
+          <p class="font-medium uppercase"><%= request.request_type %></p>
+          <p class="text-sm">Keperluan: <%= request.title %></p>
+          <% if (request.semester) { %>
+            <p class="text-sm">Semester: <%= request.semester %> (<%= request.academic_year %>)</p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="mb-8 p-4 bg-muted/50 rounded-lg border">
+        <h3 class="font-semibold mb-3">Berkas Lampiran Mahasiswa</h3>
+        <ul class="space-y-2">
+          <% if (documents) { %>
+            <% 
+              // Menentukan nama field file berdasarkan jenis surat
+              let krsField = request.request_type === 'aktif' ? documents.student_study_plan_file : documents.cover_letter_department_file;
+              let addField = request.request_type === 'aktif' ? documents.parent_decree_file : documents.proof_o_grad_registration_file;
+            %>
+            
+            <li class="flex items-center justify-between p-2 bg-background border rounded">
+              <span class="text-sm font-medium">Syarat Utama (KRS)</span>
+              <% if (krsField) { %>
+                <a href="/uploads/requests/<%= krsField %>" target="_blank" class="btn-sm-outline text-xs">Buka File</a>
+              <% } else { %>
+                <span class="text-xs text-red-500">Tidak ada file</span>
+              <% } %>
+            </li>
+
+            <% if (addField) { %>
+            <li class="flex items-center justify-between p-2 bg-background border rounded">
+              <span class="text-sm font-medium">Dokumen Tambahan</span>
+              <a href="/uploads/requests/<%= addField %>" target="_blank" class="btn-sm-outline text-xs">Buka File</a>
+            </li>
+            <% } %>
+
+          <% } else { %>
+            <p class="text-sm text-muted-foreground">Data dokumen tidak ditemukan di sistem.</p>
+          <% } %>
+        </ul>
+      </div>
+
+      <%# Form Verifikasi hanya muncul jika status masih MENUNGGU (0) %>
+      <% if (request.status === STATUS.MENUNGGU) { %>
+        <div class="border-t pt-6 mt-6">
+          <h3 class="text-lg font-bold mb-4">Aksi Verifikasi</h3>
+          <form action="/admin/requests/<%= request.id %>/verify" method="POST">
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Catatan / Alasan (Opsional)</label>
+              <textarea name="check_reason" class="input w-full" rows="3" placeholder="Contoh: File KRS buram, mohon unggah ulang..."></textarea>
+            </div>
+            
+            <div class="flex gap-3">
+              <button type="submit" name="action" value="terima" class="btn bg-green-600 hover:bg-green-700 text-white flex-1">
+                Terima & Teruskan ke Dekan
+              </button>
+              <button type="submit" name="action" value="tolak" class="btn bg-red-600 hover:bg-red-700 text-white flex-1">
+                Tolak Permohonan
+              </button>
+            </div>
+          </form>
+        </div>
+      <% } else if (request.status === STATUS.DIVERIFIKASI) { %>
+        <div class="p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-200 mt-6">
+          <p class="text-sm font-medium">Permohonan ini telah diverifikasi dan sedang menunggu tanda tangan digital Dekan.</p>
+        </div>
+      <% } else if (request.status === STATUS.DITOLAK) { %>
+        <div class="p-4 bg-red-50 text-red-800 rounded-lg border border-red-200 mt-6">
+          <p class="text-sm font-medium">Permohonan ini telah Anda tolak.</p>
+          <% if (documents && documents.check_reason) { %>
+            <p class="text-sm mt-1"><strong>Catatan:</strong> <%= documents.check_reason %></p>
+          <% } %>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

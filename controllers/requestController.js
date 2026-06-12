@@ -2,6 +2,10 @@ const db = require("../lib/db");
 const path = require("path");
 const fs = require("fs");
 
+// Tambahan library baru untuk fitur PDF dan Barcode
+const { PDFDocument, StandardFonts } = require('pdf-lib');
+const QRCode = require('qrcode');
+
 /**
  * Konvensi Status (INT):
  * 0 = Menunggu (Pending)
@@ -236,4 +240,116 @@ const cancel = async (req, res, next) => {
   }
 };
 
-module.exports = { index, createPage, store, show, cancel, STATUS, getStatusBadge };
+
+
+
+
+// ─── FITUR 4: Mahasiswa dapat mengunduh surat keterangan yang sudah ditandatangani ───
+// Penjelasan: Fungsi ini mencetak PDF dan menempelkan QR Code secara real-time
+const downloadPdf = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Ambil data permohonan dan data mahasiswa dari database
+    const [rows] = await db.query(
+      `SELECT sr.*, s.name as student_name, s.regno as nim, s.department_id
+       FROM student_requests sr
+       JOIN students s ON sr.requested_by = s.id
+       WHERE sr.id = ? AND sr.status = ?`,
+      [id, STATUS.SELESAI]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).send("Surat belum selesai atau tidak ditemukan.");
+    }
+
+    const requestData = rows[0];
+
+    // 2. Generate Tanda Tangan Digital berupa QR Code (berisi link verifikasi keaslian surat)
+    const verificationUrl = `https://sistem-informasi.unand.ac.id/verify/${requestData.request_nunmber}`;
+    const qrCodeImage = await QRCode.toBuffer(verificationUrl);
+
+    // 3. Load Template PDF Kosong 
+    const templatePath = path.join(__dirname, '../public/template_surat_aktif.pdf');
+    const existingPdfBytes = fs.readFileSync(templatePath);
+    
+    // 4. Proses Injeksi Data ke dalam PDF
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+
+    // Load font formal (mirip Times New Roman)
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+
+    // A. Menyisipkan Data Mahasiswa (Titik koordinat sudah diturunkan)
+    // Ingat: x = kiri/kanan, y = atas/bawah (semakin kecil y, semakin ke bawah)
+    const textOptions = { size: 12, font: timesRomanFont };
+// Membuat tanggal hari ini dengan format Indonesia
+    const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+    const tanggalSekarang = new Date().toLocaleDateString('id-ID', dateOptions);
+
+ 
+    // Asumsi: x: 220 adalah posisi setelah tanda titik dua ( : )
+    firstPage.drawText(requestData.student_name, { x: 224, y: 528, ...textOptions });
+    firstPage.drawText(requestData.nim, { x: 224, y: 515, ...textOptions }); 
+       // Menyisipkan tanggal ke PDF (Sesuaikan nilai x dan y letak tanggalnya)
+    // Asumsi posisi tanggal ada di atas tanda tangan Dekan
+    firstPage.drawText(tanggalSekarang, { x: 400, y: 368, ...textOptions });
+    
+    // (Opsional) Jika jurusan/semester ingin ditampilkan nanti:
+    // firstPage.drawText("Sistem Informasi", { x: 220, y: 400, ...textOptions });
+
+    // B. Menyisipkan gambar QR Code Dekan
+    const qrImage = await pdfDoc.embedPng(qrCodeImage);
+    firstPage.drawImage(qrImage, {
+      x: 393,     // Geser sedikit ke kanan agar pas di area TTD
+      y: 270,     // Posisi vertikal di area tanda tangan bawah
+      width: 90,  // Ukuran diperbesar dari 80 ke 90
+      height: 90,
+    });
+    // 5. Simpan hasil akhir dan kirimkan sebagai file download ke browser
+    const pdfBytes = await pdfDoc.save();
+    
+   // ... (Kodingan di dalam downloadPdf sebelumnya)
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Surat_Aktif_${requestData.nim}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+
+  } catch (err) {
+    next(err);
+  }
+}; // <--- INI ADALAH PENUTUP FUNGSI downloadPdf. 
+
+
+// ─── FITUR 8: Notifikasi Mahasiswa (PASTIKAN BLOK INI ADA) ───
+const notifications = async (req, res, next) => {
+  try {
+    // 1. Ambil permohonan yang ditolak (2) atau selesai (3)
+    const [notifs] = await db.query(
+      `SELECT id, request_nunmber, request_type, title, status, updated_at
+       FROM student_requests
+       WHERE requested_by = ? AND status IN (2, 3)
+       ORDER BY updated_at DESC LIMIT 20`,
+      [req.session.userId]
+    );
+
+    // 2. Ubah angka badge menjadi 0 (Tandai sudah dibaca semua)
+    await db.query(
+      `UPDATE student_requests SET is_read = 1 
+       WHERE requested_by = ? AND status IN (2, 3) AND is_read = 0`,
+      [req.session.userId]
+    );
+
+    // 3. Render ke halaman baru
+    res.render("requests/notifications", {
+      title: "Notifikasi",
+      user: req.session.username,
+      notifs: notifs.map(r => ({ ...r, badge: getStatusBadge(r.status) }))
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// --- BARIS INI HARUS BERADA DI PALING BAWAH ---
+module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications };
