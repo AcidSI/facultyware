@@ -265,52 +265,63 @@ const downloadPdf = async (req, res, next) => {
 
     const requestData = rows[0];
 
-    // 2. Generate Tanda Tangan Digital berupa QR Code (berisi link verifikasi keaslian surat)
-    const verificationUrl = `https://sistem-informasi.unand.ac.id/verify/${requestData.request_nunmber}`;
-    const qrCodeImage = await QRCode.toBuffer(verificationUrl);
+  // 2. KUNCI TANGGAL: Ambil dari database (updated_at), BUKAN dari komputer saat ini
+    const waktuDekanSetuju = requestData.updated_at;
+    const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+    const tanggalTtd = new Date(waktuDekanSetuju).toLocaleDateString('id-ID', dateOptions);
 
-    // 3. Load Template PDF Kosong 
+    // 3. RAKIT ISI QR CODE: Masukkan detail lengkap beserta tanggal yang sudah dikunci
+    const qrPayload = `KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI
+UNIVERSITAS ANDALAS
+
+TANDA TANGAN ELEKTRONIK SAH
+----------------------------------
+Penandatangan : Dr. Eng. Lusi Susanti, M.Eng   
+NIP           : 197608152006042040 
+Waktu TTD     : ${tanggalTtd}
+Nomor Surat   : ${requestData.request_nunmber || '-'}
+Keperluan     : ${requestData.title || '-'}
+
+Keterangan: Dokumen ini diterbitkan dan disahkan secara elektronik melalui Sistem Facultyware. Tanda tangan ini memiliki kekuatan hukum yang sama dengan tanda tangan basah.`;
+
+    // Generate QR Code menjadi Buffer gambar (PNG) agar bisa dibaca oleh pdf-lib
+    const qrCodeImage = await QRCode.toBuffer(qrPayload, {
+      errorCorrectionLevel: 'H', // Level High agar tetap terbaca meski teksnya banyak
+      margin: 1,
+      width: 150
+    });
+
+    // 4. Load Template PDF Kosong 
     const templatePath = path.join(__dirname, '../public/template_surat_aktif.pdf');
     const existingPdfBytes = fs.readFileSync(templatePath);
     
-    // 4. Proses Injeksi Data ke dalam PDF
+    // 5. Proses Injeksi Data ke dalam PDF
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
 
-    // Load font formal (mirip Times New Roman)
+    // Load font formal
     const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-
-    // A. Menyisipkan Data Mahasiswa (Titik koordinat sudah diturunkan)
-    // Ingat: x = kiri/kanan, y = atas/bawah (semakin kecil y, semakin ke bawah)
     const textOptions = { size: 12, font: timesRomanFont };
-// Membuat tanggal hari ini dengan format Indonesia
-    const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
-    const tanggalSekarang = new Date().toLocaleDateString('id-ID', dateOptions);
 
- 
-    // Asumsi: x: 220 adalah posisi setelah tanda titik dua ( : )
+    // A. Menyisipkan Data Mahasiswa
     firstPage.drawText(requestData.student_name, { x: 224, y: 528, ...textOptions });
     firstPage.drawText(requestData.nim, { x: 224, y: 515, ...textOptions }); 
-       // Menyisipkan tanggal ke PDF (Sesuaikan nilai x dan y letak tanggalnya)
-    // Asumsi posisi tanggal ada di atas tanda tangan Dekan
-    firstPage.drawText(tanggalSekarang, { x: 400, y: 368, ...textOptions });
     
-    // (Opsional) Jika jurusan/semester ingin ditampilkan nanti:
-    // firstPage.drawText("Sistem Informasi", { x: 220, y: 400, ...textOptions });
-
-    // B. Menyisipkan gambar QR Code Dekan
+    // B. Menyisipkan Tanggal yang Sudah Dikunci
+    firstPage.drawText(tanggalTtd, { x: 400, y: 368, ...textOptions });
+    
+    // C. Menyisipkan gambar QR Code Dekan
     const qrImage = await pdfDoc.embedPng(qrCodeImage);
     firstPage.drawImage(qrImage, {
-      x: 393,     // Geser sedikit ke kanan agar pas di area TTD
-      y: 270,     // Posisi vertikal di area tanda tangan bawah
-      width: 90,  // Ukuran diperbesar dari 80 ke 90
+      x: 393,    // Geser sedikit ke kanan agar pas di area TTD
+      y: 270,    // Posisi vertikal di area tanda tangan bawah
+      width: 90, // Ukuran diperbesar dari 80 ke 90
       height: 90,
     });
     // 5. Simpan hasil akhir dan kirimkan sebagai file download ke browser
     const pdfBytes = await pdfDoc.save();
     
-   // ... (Kodingan di dalam downloadPdf sebelumnya)
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="Surat_Aktif_${requestData.nim}.pdf"`);
     res.send(Buffer.from(pdfBytes));

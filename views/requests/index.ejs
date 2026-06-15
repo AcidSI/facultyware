@@ -1,7 +1,7 @@
 <%- include('../partials/_head.ejs') %>
 
 <div class="p-6 md:p-10 ml-2">
-  <div class="max-w-screen-lg mx-auto">
+  <div class="mx-auto space-y-6" style="max-width: 780px;"> 
 
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
       <div>
@@ -50,17 +50,34 @@
                   <%= new Date(r.requested_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
                 </td>
                 <td class="px-4 py-3">
-                  <span class="<%= r.badge.class %> px-2 py-0.5 rounded text-xs whitespace-nowrap"><%= r.badge.label %></span>
+                 <% 
+  let labelStatus = r.badge.label.toLowerCase();
+  let forceStyle = "";
+  
+  if (labelStatus.includes('selesai') || labelStatus.includes('batal')) {
+    // Paksa Latar Putih dan Tulisan Hitam
+    forceStyle = "background-color: #ffffff !important; color: #000000 !important; border: 1px solid #d1d5db !important;";
+  } else if (labelStatus.includes('tolak')) {
+    // Paksa Latar Merah dan Tulisan Hitam
+    forceStyle = "background-color: #ef4444 !important; color: #000000 !important; border: 1px solid #b91c1c !important;";
+  } else {
+    // Default (misal untuk Menunggu / Diproses) - Latar Kuning Tulisan Hitam
+    forceStyle = "background-color: #facc15 !important; color: #000000 !important; border: 1px solid #eab308 !important;";
+  }
+%>
+<span style="<%= forceStyle %>" class="btn-outline h-5 px-3 py-1 rounded-md text-xs font-semibold whitespace-nowrap shadow-sm">
+  <%= r.badge.label %>
+</span>
                 </td>
                 <td class="px-4 py-3">
                   <div class="flex items-center gap-2">
-                    <a href="/requests/<%= r.id %>" class="btn-outline h-7 text-xs px-3 flex items-center justify-center" hx-boost="true">Detail</a>
+                    <a href="/requests/<%= r.id %>" class="btn-outline h-5 text-xs px-3 py-2 flex items-center justify-center" hx-boost="true">Detail</a>
                     
                     <%# Tombol Unduh hanya muncul jika statusnya 3 (Selesai) %>
                     <% if (r.status === 3) { %>
-                      <a href="/requests/<%= r.id %>/download" target="_blank" class="h-7 px-3 flex items-center justify-center rounded-md bg-green-600 text-xs font-medium text-white hover:bg-green-700 transition-colors">
-                        Unduh PDF
-                      </a>
+                   <a href="/requests/<%= r.id %>/download" target="_blank" class="h-7 px-3 flex items-center justify-center  bg-green-50 dark:bg-green-500/10  border-green-200 dark:border-green-500/20 text-xs font-semibold text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/20 transition-colors">
+  Unduh PDF
+</a>
                     <% } %>
                   </div>
                 </td>

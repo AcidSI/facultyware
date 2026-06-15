@@ -1,129 +1,133 @@
 <%- include('../partials/_head.ejs') %>
 
-<div class="p-4 md:p-6 xl:p-12">
+<div class="p-4 md:p-6 xl:p-12 relative ">
   <div class="max-w-3xl mx-auto">
+    
     <div class="mb-6 flex items-center gap-2">
-      <a href="/requests" class="btn-sm-ghost" hx-boost="true">← Kembali</a>
+      <a href="/requests" class="bg-background px-4 py-2 rounded-md border border-border shadow-sm text-sm inline-block font-medium text-foreground hover:bg-muted transition-colors" hx-boost="true">
+        ← Kembali
+      </a>
     </div>
 
-    <div class="card relative p-6 md:p-8">
-      <div class="absolute top-0 right-0 p-6">
-        <span class="<%= request.badge.class %> text-sm px-3 py-1"><%= request.badge.label %></span>
+    <div class="card bg-card text-card-foreground rounded-xl border border-border shadow-xl overflow-hidden">
+      
+      <div class="p-6 md:p-8 border-b border-border bg-muted/30 flex justify-between items-start gap-6">
+        <div class="flex flex-col items-start gap-2">
+          <h2 class="text-2xl md:text-3xl font-bold leading-tight text-foreground">
+            <%= request.title %>
+          </h2>
+          <p class="text-muted-foreground text-sm flex gap-3 flex-wrap items-center mt-1">
+            <span class="font-mono bg-background border border-border px-2 py-0.5 rounded shadow-sm text-foreground">
+              <%= request.request_nunmber || 'Belum tersedia' %>
+            </span>
+            <span class="text-muted-foreground/40">|</span>
+            <span class="uppercase font-semibold text-xs tracking-wider text-muted-foreground">
+              <%= request.request_type === 'aktif' ? 'Surat Keterangan Aktif Kuliah' : 'Surat Keterangan Kelulusan' %>
+            </span>
+          </p>
+        </div>
+        <div class="shrink-0 pt-1">
+          <span class="<%= request.badge.class %> text-xs px-3 py-1.5 font-bold uppercase tracking-wide rounded-md shadow-sm border border-border whitespace-nowrap inline-block">
+            <%= request.badge.label %>
+          </span>
+        </div>
       </div>
 
-      <header class="pb-6 border-b">
-        <h2 class="text-2xl font-bold mb-1"><%= request.title %></h2>
-        <p class="text-muted-foreground text-sm flex gap-3 flex-wrap">
-          <span class="font-mono bg-muted px-2 py-0.5 rounded"><%= request.request_nunmber %></span>
-          <span class="uppercase font-semibold">
-            <%= request.request_type === 'aktif' ? 'Surat Keterangan Aktif Kuliah' : 'Surat Keterangan Kelulusan' %>
-          </span>
-        </p>
-      </header>
-
-      <section class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 pt-6">
-        <div class="grid gap-1">
-          <span class="text-sm text-muted-foreground">Nama Mahasiswa</span>
-          <p class="font-medium"><%= request.student_name %></p>
-        </div>
-        <div class="grid gap-1">
-          <span class="text-sm text-muted-foreground">NIM / Nomor Induk</span>
-          <p class="font-medium font-mono"><%= request.nim %></p>
-        </div>
-        <div class="grid gap-1">
-          <span class="text-sm text-muted-foreground">Tanggal Pengajuan</span>
-          <p class="font-medium">
-            <%= new Date(request.requested_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) %> WIB
-          </p>
-        </div>
-        <div class="grid gap-1">
-          <span class="text-sm text-muted-foreground">Terakhir Diperbarui</span>
-          <p class="font-medium">
-            <%= request.updated_at ? new Date(request.updated_at).toLocaleString('id-ID') : '-' %>
-          </p>
-        </div>
-
-        <div class="grid gap-2 md:col-span-2 mt-2">
-          <span class="text-sm font-medium">Keterangan Surat</span>
-          <div class="p-4 bg-muted rounded-md text-sm leading-relaxed border border-border">
-            <%= request.description || 'Tidak ada keterangan tambahan.' %>
+      <div class="p-6 md:p-8 grid gap-8">
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+          <div class="grid gap-1.5">
+            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nama Mahasiswa</span>
+            <p class="font-medium text-foreground"><%= request.student_name %></p>
           </div>
-        </div>
-      </section>
-
-      <%# --- Berkas yang Diunggah --- %>
-      <% if (documents) { %>
-        <section class="mt-6 pt-6 border-t">
-          <h3 class="font-semibold text-sm mb-4">Berkas Persyaratan</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <% if (request.request_type === 'aktif') { %>
-              <% if (documents.student_study_plan_file) { %>
-                <a href="/uploads/requests/<%= documents.student_study_plan_file %>"
-                   target="_blank" class="btn-sm-outline flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  Lihat KRS
-                </a>
-              <% } %>
-              <% if (documents.parent_decree_file) { %>
-                <a href="/uploads/requests/<%= documents.parent_decree_file %>"
-                   target="_blank" class="btn-sm-outline flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  Lihat Dokumen Tambahan
-                </a>
-              <% } %>
-            <% } else if (request.request_type === 'lulus') { %>
-              <% if (documents.cover_letter_department_file) { %>
-                <a href="/uploads/requests/<%= documents.cover_letter_department_file %>"
-                   target="_blank" class="btn-sm-outline flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  Lihat KRS / Dokumen Utama
-                </a>
-              <% } %>
-              <% if (documents.proof_o_grad_registration_file) { %>
-                <a href="/uploads/requests/<%= documents.proof_o_grad_registration_file %>"
-                   target="_blank" class="btn-sm-outline flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  Lihat Bukti Pendaftaran Wisuda
-                </a>
-              <% } %>
-            <% } %>
-
-            <%# Catatan dari admin (jika ada) %>
-            <% if (documents.check_reason) { %>
-              <div class="md:col-span-2">
-                <span class="text-sm text-muted-foreground">Catatan Verifikasi Admin</span>
-                <p class="mt-1 p-3 bg-muted rounded text-sm"><%= documents.check_reason %></p>
-              </div>
-            <% } %>
-            <% if (documents.sign_reason) { %>
-              <div class="md:col-span-2">
-                <span class="text-sm text-muted-foreground">Catatan Penandatanganan</span>
-                <p class="mt-1 p-3 bg-muted rounded text-sm"><%= documents.sign_reason %></p>
-              </div>
-            <% } %>
+          <div class="grid gap-1.5">
+            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">NIM / Nomor Induk</span>
+            <p class="font-medium font-mono text-foreground"><%= request.nim %></p>
+          </div>
+          <div class="grid gap-1.5">
+            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tanggal Pengajuan</span>
+            <p class="font-medium text-foreground">
+              <%= new Date(request.requested_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) %> WIB
+            </p>
+          </div>
+          <div class="grid gap-1.5">
+            <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Terakhir Diperbarui</span>
+            <p class="font-medium text-foreground">
+              <%= request.updated_at ? new Date(request.updated_at).toLocaleString('id-ID') : '-' %>
+            </p>
+          </div>
+          <div class="grid gap-2 md:col-span-2 mt-2">
+            <span class="text-sm font-semibold text-foreground">Keterangan Surat</span>
+            <div class="p-5 bg-muted rounded-lg text-sm leading-relaxed border border-border text-foreground">
+              <%= request.description || 'Tidak ada keterangan tambahan.' %>
+            </div>
           </div>
         </section>
-      <% } %>
 
-      <footer class="mt-8 pt-6 border-t flex justify-end gap-3">
-        <%# Tombol batal hanya muncul jika status masih "Menunggu" (0) %>
-        <% if (request.status === STATUS.MENUNGGU) { %>
-          <button
-            type="button"
-            class="btn-destructive"
-            hx-post="/requests/<%= request.id %>/cancel"
-            hx-confirm="Apakah Anda yakin ingin membatalkan permohonan ini? Tindakan ini tidak dapat diubah."
-          >
-            Batalkan Permohonan
-          </button>
+        <% if (documents) { %>
+          <section class="pt-6 border-t border-border">
+            <h3 class="font-semibold text-sm mb-4 text-foreground">Berkas Persyaratan</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <% if (request.request_type === 'aktif') { %>
+                <% if (documents.student_study_plan_file) { %>
+                  <a href="/uploads/requests/<%= documents.student_study_plan_file %>" target="_blank" class="flex items-center justify-center gap-2.5 bg-background border border-border py-3 px-4 rounded-lg hover:bg-muted transition-colors text-sm font-semibold shadow-sm text-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Lihat Dokumen KRS
+                  </a>
+                <% } %>
+                <% if (documents.parent_decree_file) { %>
+                  <a href="/uploads/requests/<%= documents.parent_decree_file %>" target="_blank" class="flex items-center justify-center gap-2.5 bg-background border border-border py-3 px-4 rounded-lg hover:bg-muted transition-colors text-sm font-semibold shadow-sm text-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Lihat Dokumen Tambahan
+                  </a>
+                <% } %>
+              <% } else if (request.request_type === 'lulus') { %>
+                <% if (documents.cover_letter_department_file) { %>
+                  <a href="/uploads/requests/<%= documents.cover_letter_department_file %>" target="_blank" class="flex items-center justify-center gap-2.5 bg-background border border-border py-3 px-4 rounded-lg hover:bg-muted transition-colors text-sm font-semibold shadow-sm text-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Lihat KRS / Dokumen Utama
+                  </a>
+                <% } %>
+                <% if (documents.proof_o_grad_registration_file) { %>
+                  <a href="/uploads/requests/<%= documents.proof_o_grad_registration_file %>" target="_blank" class="flex items-center justify-center gap-2.5 bg-background border border-border py-3 px-4 rounded-lg hover:bg-muted transition-colors text-sm font-semibold shadow-sm text-foreground">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Lihat Bukti Pendaftaran Wisuda
+                  </a>
+                <% } %>
+              <% } %>
+              
+              <% if (documents.check_reason) { %>
+                <div class="md:col-span-2 mt-3">
+                  <span class="text-sm font-bold text-red-500">Catatan Verifikasi Admin</span>
+                  <div class="mt-1.5 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600 dark:text-red-400 leading-relaxed"><%= documents.check_reason %></div>
+                </div>
+              <% } %>
+              <% if (documents.sign_reason) { %>
+                <div class="md:col-span-2 mt-3">
+                  <span class="text-sm font-bold text-blue-500">Catatan Penandatanganan</span>
+                  <div class="mt-1.5 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-600 dark:text-blue-400 leading-relaxed"><%= documents.sign_reason %></div>
+                </div>
+              <% } %>
+            </div>
+          </section>
         <% } %>
-      </footer>
-    </div>
+
+        <footer class="mt-2 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-end gap-3">
+          <% if (request.status === STATUS.MENUNGGU) { %>
+            <button type="button" class="btn-destructive w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium" hx-post="/requests/<%= request.id %>/cancel" hx-confirm="Apakah Anda yakin ingin membatalkan permohonan ini? Tindakan ini tidak dapat diubah.">
+              Batalkan Permohonan
+            </button>
+          <% } %>
+          <% if (request.status === STATUS.SELESAI) { %>
+            <a href="/requests/<%= request.id %>/download" class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Unduh Surat Keterangan
+            </a>
+          <% } %>
+        </footer>
+        
+      </div>
+    </div> 
   </div>
 </div>
 

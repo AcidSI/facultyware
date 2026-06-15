@@ -2,5 +2,48 @@
     </main>
 
     <div id="toaster" class="toaster"></div>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/tsparticles.bundle.min.js"></script>
+
+  <script>
+    // Bungkus mesin animasinya ke dalam satu fungsi bernama "nyalakanPartikel"
+    function nyalakanPartikel() {
+      // Cek apakah kodingan library-nya ada dan elemen kanvasnya ada
+      if (typeof tsParticles !== 'undefined' && document.getElementById("tsparticles")) {
+        tsParticles.load({
+          id: "tsparticles",
+          options: {
+            background: { color: { value: "transparent" } },
+            particles: {
+              number: { value: 60 }, 
+              color: { value: "#94a3b8" }, 
+              links: {
+                enable: true,
+                color: "#94a3b8",
+                distance: 150,
+                opacity: 0.3,
+                width: 1,
+              },
+              move: { enable: true, speed: 1 },
+              size: { value: { min: 1, max: 2 } },
+            },
+            interactivity: {
+              events: { onHover: { enable: true, mode: "grab" } },
+              modes: {
+                grab: { distance: 140, links: { opacity: 0.8 } },
+              },
+            },
+            detectRetina: true,
+          },
+        });
+      }
+    }
+
+    // A. Pemicu 1: Jalankan saat halaman dibuka pertama kali atau di-refresh manual
+    document.addEventListener("DOMContentLoaded", nyalakanPartikel);
+
+    // B. Pemicu 2: Jalankan ulang setiap kali HTMX selesai pindah halaman (Tanpa Refresh)
+    document.body.addEventListener("htmx:afterSwap", nyalakanPartikel);
+  </script>
+</body>
   </body>
 </html>
