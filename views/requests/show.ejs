@@ -41,7 +41,7 @@
           </div>
           <div class="grid gap-1.5">
             <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">NIM / Nomor Induk</span>
-            <p class="font-medium font-mono text-foreground"><%= request.nim %></p>
+            <p class="font-medium text-foreground"><%= request.nim %></p>
           </div>
           <div class="grid gap-1.5">
             <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tanggal Pengajuan</span>
@@ -56,10 +56,13 @@
             </p>
           </div>
           <div class="grid gap-2 md:col-span-2 mt-2">
-            <span class="text-sm font-semibold text-foreground">Keterangan Surat</span>
-            <div class="p-5 bg-muted rounded-lg text-sm leading-relaxed border border-border text-foreground">
+              <span class="text-sm font-semibold text-foreground">Keterangan Surat</span>
+  
+              <div class="px-4 py-3 min-h-[80px] bg-muted rounded-lg text-sm leading-relaxed border border-border text-foreground">
               <%= request.description || 'Tidak ada keterangan tambahan.' %>
-            </div>
+          </div>
+  
+</div>
           </div>
         </section>
 

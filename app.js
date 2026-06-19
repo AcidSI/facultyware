@@ -50,7 +50,6 @@ app.use(session({
   }
 }));
 
-// ✅ PERBAIKAN: Semua router didaftarkan SEBELUM error handler
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/requests', requestsRouter);

@@ -1,0 +1,65 @@
+<%- include('./partials/_head.ejs') %>
+
+<div class="p-6 md:p-10 ml-2">
+  <div class="mx-auto space-y-6" style="max-width: 640px;">
+
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold mt-3">Profil Mahasiswa</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">Informasi Mahasiswa</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 24px;">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="size-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold select-none">
+          <%= student.name ? student.name.charAt(0).toUpperCase() : '?' %>
+        </div>
+        <div>
+          <p class="font-semibold text-base"><%= student.name || '-' %></p>
+          <p class="text-sm text-muted-foreground">Mahasiswa</p>
+        </div>
+      </div>
+
+      <%# --- BAGIAN YANG DIPERBAIKI --- %>
+      <div class="flex flex-col divide-y divide-border">
+        
+        <div class="grid gap-1 pb-3">
+          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">NIM</p>
+          <p class="text-sm font-medium"><%= student.regno || '-' %></p>
+        </div>
+        
+        <div class="grid gap-1 py-3">
+          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Nama Lengkap</p>
+          <p class="text-sm font-medium"><%= student.name || '-' %></p>
+        </div>
+        
+        <div class="grid gap-1 py-3">
+          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fakultas</p>
+          <p class="text-sm font-medium"><%= student.faculty_name || 'Belum diatur' %></p>
+        </div>
+        
+        <div class="grid gap-1 py-3">
+          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Jurusan / Program Studi</p>
+          <p class="text-sm font-medium"><%= student.department_name || 'Belum diatur' %></p>
+        </div>
+        
+        <div class="grid gap-1 pt-3">
+          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</p>
+          <p class="text-sm font-medium"><%= student.email || '-' %></p>
+        </div>
+
+      </div>
+      <%# --- AKHIR BAGIAN YANG DIPERBAIKI --- %>
+
+      <div class="mt-8 flex justify-end">
+        <a href="/profile/edit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+          Lengkapi / Edit Profil
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('./partials/_foot.ejs') %>

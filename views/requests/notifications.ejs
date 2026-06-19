@@ -5,12 +5,11 @@
 
     <div class="flex flex-col items-start gap-4 mb-4">
       <div>
-        <p class="text-sm text-muted-foreground">Pembaruan status permohonan,</p>
-        <h1 class="text-2xl font-bold tracking-tight mt-1 text-foreground">Notifikasi Saya</h1>
+        <h1 class="text-2xl font-bold tracking-tight mt-1 text-foreground">Notifikasi</h1>
       </div>
       <a href="/home" hx-boost="true" class="bg-background border border-border text-foreground hover:bg-muted h-9 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 shadow-sm text-sm font-medium transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        Kembali ke Beranda
+        Kembali
       </a>
     </div>
 
@@ -21,38 +20,57 @@
           <div class="card bg-card text-card-foreground p-5 md:p-6 rounded-xl border border-border shadow-sm flex flex-col gap-4 border-l-4 <%= n.status === 3 ? 'border-l-green-500' : 'border-l-red-500' %>">
             
             <div class="flex justify-between items-start">
-  <span class="text-xs text-muted-foreground font-medium mt-1">
-    <%= new Date(n.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
-  </span>
-  
-  <% 
-    let labelStatus = n.badge.label.toLowerCase(); 
-    let forceStyle = "";
-    
-    if (labelStatus.includes('selesai') || labelStatus.includes('batal')) {
-      // Selesai: Latar gelap (hitam/adaptif tema), teks terang
-      forceStyle = "background-color: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; border-color: hsl(var(--primary)) !important;";
-    } else if (labelStatus.includes('tolak')) {
-      // Tolak: Merah pekat, teks putih
-      forceStyle = "background-color: #ef4444 !important; color: #ffffff !important; border-color: #b91c1c !important;";
-    } else {
-      // Menunggu/Proses: Kuning, teks hitam
-      forceStyle = "background-color: #facc15 !important; color: #000000 !important; border-color: #ca8a04 !important;";
-    }
-  %>
-  
-  <span class="<%= n.badge.class %> text-[10px] px-2.5 py-1.3 rounded-full uppercase font-bold tracking-wider shadow-sm border border-border" style="<%= forceStyle %>">
-    <%= n.badge.label %>
-  </span>
-</div>
+              <span class="text-xs text-muted-foreground font-medium mt-1">
+                <%= new Date(n.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+              </span>
+              
+              <% 
+                let labelStatus = n.badge.label.toLowerCase(); 
+                let forceStyle = "";
+                let notifMessage = "";
+                
+                if (labelStatus.includes('selesai') || labelStatus.includes('batal')) {
+                  // Style
+                  forceStyle = "background-color: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; border-color: hsl(var(--primary)) !important;";
+                  // Pesan
+                  notifMessage = "Halo! Surat permohonan Anda telah berhasil diterbitkan dan sudah siap. Anda dapat mengunduhnya secara langsung melalui halaman detail dokumen.";
+                } else if (labelStatus.includes('tolak')) {
+                  // Style
+                  forceStyle = "background-color: #ef4444 !important; color: #ffffff !important; border-color: #b91c1c !important;";
+                  // Pesan
+                  notifMessage = "Mohon maaf, permohonan Anda tidak dapat kami proses saat ini. Silakan periksa detail permohonan untuk melihat catatan lebih lanjut dari pihak administrasi.";
+                } else if (labelStatus.includes('proses')) {
+                  // Style (Asumsi untuk diproses)
+                  forceStyle = "background-color: #3b82f6 !important; color: #ffffff !important; border-color: #2563eb !important;";
+                  // Pesan
+                  notifMessage = "Permohonan Anda sedang dalam tahap verifikasi dan pemrosesan oleh tim fakultas. Kami akan memberitahu Anda segera setelah surat selesai dibuat.";
+                } else {
+                  // Style (Menunggu)
+                  forceStyle = "background-color: #facc15 !important; color: #000000 !important; border-color: #ca8a04 !important;";
+                  // Pesan
+                  notifMessage = "Permohonan Anda telah kami terima dan saat ini sedang menunggu antrean untuk diproses oleh petugas administrasi.";
+                }
+              %>
+              
+              <span class="<%= n.badge.class %> text-[10px] px-2.5 py-1.3 rounded-full uppercase font-bold tracking-wider shadow-sm border border-border" style="<%= forceStyle %>">
+                <%= n.badge.label %>
+              </span>
+            </div>
 
             <div class="grid gap-1">
               <p class="font-bold text-base text-foreground tracking-tight"><%= n.title %></p>
               <p class="text-sm text-muted-foreground font-mono">No. Surat: <%= n.request_nunmber || '-' %></p>
             </div>
 
+            <%# --- Tambahan Pesan Profesional --- %>
+            <div class="p-3.5 bg-muted/40 border border-border/50 rounded-lg">
+              <p class="text-sm text-foreground leading-relaxed">
+                <%= notifMessage %>
+              </p>
+            </div>
+
             <div class="mt-1">
-              <a href="/requests/<%= n.id %>" class="bg-background border border-border text-foreground hover:bg-muted text-xs h-4 px-3 py-3 rounded-lg shadow-sm font-semibold transition-colors inline-flex items-center justify-center" hx-boost="true">
+              <a href="/requests/<%= n.id %>" class="bg-background border border-border text-foreground hover:bg-muted text-xs h-4 px-3 py-3 rounded-lg shadow-sm font-semibold transition-colors inline-flex items-center justify-center w-fit" hx-boost="true">
                 Lihat Detail
               </a>
             </div>

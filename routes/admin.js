@@ -15,6 +15,8 @@ router.get("/", (req, res) => {
     res.redirect("/admin/requests");
 });
 
+router.get("/requests/export/pdf", checkPermission("verify-requests"), adminController.exportPdf);
+
 // Fitur 5: Halaman Daftar Permohonan
 router.get("/requests", checkPermission("verify-requests"), adminController.index);
 
