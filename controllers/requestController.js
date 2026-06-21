@@ -362,5 +362,69 @@ const notifications = async (req, res, next) => {
   }
 };
 
+// --- Tambahkan ini di requestController.js ---
+
+// ─── Fitur Tambahan: JSON Riwayat Permohonan ─────────────────────────────────
+const getHistoryJson = async (req, res, next) => {
+  try {
+    const page    = parseInt(req.query.page) || 1;
+    const limit   = parseInt(req.query.limit) || 10; // Bisa diatur via query param
+    const offset  = (page - 1) * limit;
+    const search  = req.query.search || "";
+
+    const searchPattern = `%${search}%`;
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) as total
+       FROM student_requests sr
+       WHERE sr.requested_by = ?
+         AND (sr.request_nunmber LIKE ? OR sr.title LIKE ? OR sr.request_type LIKE ?)`,
+      [req.session.userId, searchPattern, searchPattern, searchPattern]
+    );
+
+    const [requests] = await db.query(
+      `SELECT sr.id, sr.request_nunmber, sr.request_type, sr.title, sr.description, 
+              sr.status, sr.requested_at, sr.updated_at,
+              s.name as student_name, s.regno as nim
+       FROM student_requests sr
+       JOIN students s ON sr.requested_by = s.id
+       WHERE sr.requested_by = ?
+         AND (sr.request_nunmber LIKE ? OR sr.title LIKE ? OR sr.request_type LIKE ?)
+       ORDER BY sr.requested_at DESC
+       LIMIT ? OFFSET ?`,
+      [req.session.userId, searchPattern, searchPattern, searchPattern, limit, offset]
+    );
+
+    // Map data untuk menambahkan informasi badge/status yang lebih deskriptif
+    const mappedRequests = requests.map(r => ({
+      ...r,
+      status_label: getStatusBadge(r.status).label
+    }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    // Mengembalikan data dalam format JSON
+    res.status(200).json({
+      success: true,
+      data: mappedRequests,
+      meta: {
+        current_page: page,
+        total_pages: totalPages,
+        total_items: total,
+        items_per_page: limit,
+        search_query: search
+      }
+    });
+
+  } catch (err) {
+    // Tangani error dengan format JSON juga
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data riwayat permohonan.",
+      error: err.message 
+    });
+  }
+};
+
 // --- BARIS INI HARUS BERADA DI PALING BAWAH ---
-module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications };
+module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications, getHistoryJson };

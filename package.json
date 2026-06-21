@@ -20,9 +20,28 @@
     "multer": "^2.1.1",
     "mysql2": "^3.22.3",
     "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.19.1",
+    "pdfkit-table": "^0.2.11",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
-  }
+  },
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AcidSI/facultyware.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AcidSI/facultyware/issues"
+  },
+  "homepage": "https://github.com/AcidSI/facultyware#readme"
 }

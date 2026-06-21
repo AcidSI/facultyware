@@ -44,6 +44,57 @@
     // B. Pemicu 2: Jalankan ulang setiap kali HTMX selesai pindah halaman (Tanpa Refresh)
     document.body.addEventListener("htmx:afterSwap", nyalakanPartikel);
   </script>
+
+ <style>
+  /* Mengatur animasi agar gerakannya mulus */
+  #sidebar, #content {
+    transition: all 0.3s ease-in-out !important;
+  }
+  
+  /* Aturan saat sidebar ditutup */
+  body.sidebar-closed #sidebar {
+    transform: translateX(-100%) !important; /* Geser ke luar layar */
+    opacity: 0 !important; /* Hilangkan seutuhnya */
+    pointer-events: none !important; /* Matikan klik */
+  }
+  
+  /* Aturan agar konten utama mengisi ruang kosong di kiri */
+  body.sidebar-closed #content {
+    margin-left: 0 !important;
+  }
+</style>
+
+<script>
+  (function() {
+    // Ingat pilihan user (buka/tutup) di memori browser
+    let isClosed = localStorage.getItem('sidebarClosed') === 'true';
+
+    window.toggleSidebar = function() {
+      isClosed = !isClosed;
+      localStorage.setItem('sidebarClosed', isClosed);
+      applySidebarState();
+    };
+
+    function applySidebarState() {
+      if (isClosed) {
+        // Pasang kelas ke body, biarkan CSS di atas yang bekerja
+        document.body.classList.add('sidebar-closed');
+      } else {
+        // Cabut kelas dari body
+        document.body.classList.remove('sidebar-closed');
+      }
+    }
+
+    // Terapkan saat web baru dibuka
+    document.addEventListener("DOMContentLoaded", applySidebarState);
+    
+    // Terapkan ulang saat HTMX ganti halaman (mencegah bug nyangkut)
+    document.body.addEventListener("htmx:afterSwap", applySidebarState);
+    
+    // Inisialisasi awal saat skrip dibaca
+    applySidebarState();
+  })();
+</script>
 </body>
   </body>
 </html>

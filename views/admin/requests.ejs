@@ -2,11 +2,22 @@
 
 <div class="p-4 md:p-6 xl:p-12">
   <div class="max-w-screen-xl mx-auto">
+    
+    <%# --- HEADER DENGAN TOMBOL CETAK PDF --- %>
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Verifikasi Permohonan</h1>
         <p class="text-muted-foreground">Daftar permohonan mahasiswa yang memerlukan verifikasi berkas KRS.</p>
       </div>
+      
+      <a href="/admin/requests/export/pdf" target="_blank" class="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 shadow-sm transition-colors w-fit shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Riwayat Surat yang Diproses
+      </a>
     </header>
 
     <form method="GET" action="/admin/requests" class="mb-4 flex gap-2">

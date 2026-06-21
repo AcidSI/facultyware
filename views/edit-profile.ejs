@@ -1,0 +1,61 @@
+<%- include('./partials/_head.ejs') %>
+
+<div class="p-6 md:p-10 ml-2">
+  <div class="mx-auto space-y-6" style="max-width: 640px;">
+
+    <div class="mb-6">
+      <h1 class="text-xl font-bold mt-3">Edit Profil</h1>
+      <p class="text-sm text-muted-foreground mt-0.5">Lengkapi data jurusan dan email kamu di bawah ini.</p>
+    </div>
+
+    <div class="card" style="padding: 24px;">
+      <form action="/profile/edit" method="POST" class="grid gap-6">
+
+        <div class="grid gap-2">
+          <label for="email" class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+          <input type="email" id="email" name="email" value="<%= student.email || '' %>" placeholder="contoh: nama@student.ac.id"
+                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        </div>
+
+        <hr class="border-border">
+
+        <div class="grid gap-2">
+          <label for="department_id" class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fakultas & Jurusan</label>
+          <select id="department_id" name="department_id"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <option value="">-- Pilih Jurusan Kamu --</option>
+            <% 
+              let currentFaculty = '';
+              departments.forEach(dept => { 
+                // Logika ini untuk mengelompokkan Jurusan berdasarkan Fakultasnya di dalam dropdown
+                if (dept.fac_name !== currentFaculty) { 
+                  if (currentFaculty !== '') { %> </optgroup> <% }
+                  currentFaculty = dept.fac_name;
+            %>
+                  <optgroup label="<%= currentFaculty %>">
+            <%  } %>
+                  <option value="<%= dept.id %>" <%= student.department_id === dept.id ? 'selected' : '' %>>
+                    <%= dept.dept_name %>
+                  </option>
+            <% }); %>
+            <% if (departments.length > 0) { %> </optgroup> <% } %>
+          </select>
+          <p class="text-xs text-muted-foreground mt-1">Pilih program studi kamu. Fakultas akan otomatis menyesuaikan.</p>
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+          <a href="/profile" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 transition-colors">
+            Batal
+          </a>
+          <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 transition-colors">
+            Simpan Perubahan
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<%- include('./partials/_foot.ejs') %>
