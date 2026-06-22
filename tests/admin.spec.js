@@ -30,13 +30,8 @@ test.describe.serial('Alur Lengkap Admin', () => {
     
     const rejectBtn = page.locator('button:has-text("Tolak Permohonan")');
     
-    if (await rejectBtn.isVisible()) {
-      await page.locator('textarea[name="check_reason"]').fill('Berkas KRS kurang jelas, silakan unggah ulang dokumen yang tidak terpotong.');
-      await rejectBtn.click();
-      await page.waitForLoadState('networkidle');
-    } else {
-      console.log('Catatan: Tombol "Tolak" tidak ditemukan. Pastikan ada permohonan berstatus "Menunggu".');
-    }
+    await expect(rejectBtn).toBeVisible({ timeout: 5000 });
+    await rejectBtn.click();
   });
 
   test('Fitur 6: Admin menerima permohonan yang valid', async ({ page }) => {
