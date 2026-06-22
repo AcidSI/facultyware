@@ -19,10 +19,19 @@ const checkPermission = (requiredPermissions) => {
          JOIN role_has_permissions rhp ON p.id = rhp.permission_id
          JOIN model_has_roles mhr ON rhp.role_id = mhr.role_id
          WHERE mhr.model_id = ?
-           AND mhr.model_type = 'App\\\\Models\\\\User'
+           AND mhr.model_type LIKE '%User%'  -- <-- [PERBAIKAN SAKTI: Anti jebakan backslash]
            AND p.name IN (?)`,
         [req.session.userId, permissionsArray]
       );
+
+      // ==================== CCTV DEbugging ====================
+      console.log("\n[CCTV POS SATPAM ACL] ==========================");
+      console.log("1. User ID yg mencoba masuk :", req.session.userId);
+      console.log("2. Halaman ini menagih KTA  :", permissionsArray);
+      console.log("3. KTA yg dipunya User di DB:", rows.map(r => r.name));
+      console.log("Hasil Putusan               :", rows.length > 0 ? "DIIZINKAN MASUK 🟢" : "TENDANG KELUAR 🔴");
+      console.log("================================================\n");
+      // ========================================================
 
       if (rows.length > 0) {
         return next();
@@ -41,7 +50,6 @@ const checkPermission = (requiredPermissions) => {
     }
   };
 };
-
 // --- TAMBAHKAN FUNGSI BARU INI SEBAGAI PENGATUR LALU LINTAS ---
 const checkRole = (...allowedRoles) => {
   return (req, res, next) => {
