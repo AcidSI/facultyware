@@ -6,11 +6,8 @@ const statusLabel = (status) => {
   return map[status] ?? "Unknown";
 };
 
-// ─── API: List Permohonan ──────────────────────────────────────────────────────
-// GET /api/requests?page=1&search=...
 const getList = async (req, res) => {
   try {
-    // ✅ PERBAIKAN: Gunakan session (bukan query param student_id yang bisa dimanipulasi)
     const userId = req.session.userId;
     const page   = parseInt(req.query.page) || 1;
     const limit  = parseInt(req.query.limit) || 10;
@@ -48,14 +45,11 @@ const getList = async (req, res) => {
   }
 };
 
-// ─── API: Detail Permohonan ────────────────────────────────────────────────────
-// GET /api/requests/:id
 const getDetail = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.session.userId;
 
-    // ✅ Pastikan mahasiswa hanya bisa lihat permohonannya sendiri
     const [rows] = await db.query(
       `SELECT sr.*, s.name as student_name, s.regno as nim
        FROM student_requests sr

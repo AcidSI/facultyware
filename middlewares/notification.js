@@ -1,7 +1,7 @@
 const db = require("../lib/db");
 
 const getUnreadCount = async (req, res, next) => {
-  // CCTV Pintu Depan: Cek apakah middleware jalan dan baca session
+  
   console.log("--> [CEK MIDDLEWARE] Role saat ini:", req.session ? req.session.role : "Sesi Kosong");
 
   if (req.session && req.session.role === 'student') {

@@ -42,7 +42,6 @@
         <ul class="space-y-2">
           <% if (documents) { %>
             <% 
-              // Menentukan nama field file berdasarkan jenis surat
               let krsField = request.request_type === 'aktif' ? documents.student_study_plan_file : documents.cover_letter_department_file;
               let addField = request.request_type === 'aktif' ? documents.parent_decree_file : documents.proof_o_grad_registration_file;
             %>
@@ -69,7 +68,6 @@
         </ul>
       </div>
 
-      <%# Form Verifikasi hanya muncul jika status masih MENUNGGU (0) %>
       <% if (request.status === STATUS.MENUNGGU) { %>
         <div class="border-t pt-6 mt-6">
           <h3 class="text-lg font-bold mb-4">Aksi Verifikasi</h3>
