@@ -9,6 +9,8 @@ const { checkRole } = require("../middlewares/acl");
 // ✅ 1. PANGGIL MESIN PENGHITUNG LONCENG DI SINI
 const { getUnreadCount } = require("../middlewares/notification");
 
+
+router.get("/verify/:token", requestController.verifyPublicDocument);
 /* GET home page (Landing Page Publik) */
 router.get("/", indexController.index);
 

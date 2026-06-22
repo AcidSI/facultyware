@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 bg-slate-50">
+
+  <div class="bg-white border border-green-500/30 shadow-xl rounded-2xl w-full max-w-lg p-8 md:p-10">
+    
+    <div class="text-center space-y-3 mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-50 text-green-600 mb-2 border-8 border-green-50/50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-800">Dokumen Terverifikasi Asli</h1>
+      <p class="text-sm font-medium text-slate-500">Sistem Validasi Elektronik Universitas Andalas</p>
+    </div>
+
+    <div class="space-y-4 text-sm border-t border-slate-100 pt-6">
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">No. Surat</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.request_nunmber %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">Nama</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.student_name %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">NIM</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.nim %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">Fakultas</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.fakultas %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">Jurusan</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.jurusan %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">Semester</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.semester ? request.semester.charAt(0).toUpperCase() + request.semester.slice(1) : '-' %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 border-b border-slate-50 pb-3">
+        <span class="text-slate-500 font-medium">Tahun Akademik</span>
+        <span class="col-span-2 text-slate-800 font-semibold">: <%= request.tahun_akademik || '-' %></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3 pb-2">
+        <span class="text-slate-500 font-medium">Keperluan</span>
+        <span class="col-span-2 text-slate-800 font-semibold leading-relaxed">: <%= request.title %></span>
+      </div>
+    </div>
+    
+    <div class="mt-6 p-5 bg-green-50/50 rounded-xl border border-green-100">
+      <h3 class="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Informasi Pengesahan Elektronik
+      </h3>
+      <div class="space-y-2 text-sm">
+        <div class="grid grid-cols-3 gap-3">
+          <span class="text-green-700/80 font-medium">Ditandatangani</span>
+          <span class="col-span-2 text-green-900 font-semibold">: Dr. Eng. Lusi Susanti, M.Eng</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <span class="text-green-700/80 font-medium">NIP</span>
+          <span class="col-span-2 text-green-900">: 197608152006042040</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mt-1 pt-2 border-t border-green-200/50">
+          <span class="text-green-700/80 font-medium">Waktu Disahkan</span>
+          <span class="col-span-2 text-green-900 font-mono text-xs mt-0.5">
+            : <%= new Date(request.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %> 
+            pukul <%= new Date(request.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) %> WIB
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

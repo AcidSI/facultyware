@@ -1,6 +1,6 @@
 const db = require("../lib/db");
 const { STATUS, getStatusBadge } = require("./requestController");
-const PDFDocument = require("pdfkit-table"); // Tambahan library untuk cetak tabel PDF
+const PDFDocument = require("pdfkit-table");
 
 const index = async (req, res, next) => {
   try {
@@ -27,6 +27,33 @@ const index = async (req, res, next) => {
        LIMIT ? OFFSET ?`,
       [searchPattern, searchPattern, searchPattern, limit, offset]
     );
+
+    const statusLabels = {
+      1: "Diproses",
+      2: "Ditolak",
+      3: "Selesai"
+    };
+
+    const formattedRequests = requests.map(r => ({
+      id: r.id,
+      request_nunmber: r.request_nunmber,
+      request_type: r.request_type,
+      title: r.title,
+      description: r.description,
+      status: r.status,
+      requested_at: r.requested_at,
+      updated_at: r.updated_at,
+      student_name: r.student_name,
+      nim: r.nim,
+      status_label: statusLabels[r.status] || "Menunggu"
+    }));
+
+    if (req.query.format === "json") {
+      return res.json({
+        success: true,
+        data: formattedRequests
+      });
+    }
 
     const mappedRequests = requests.map(r => ({ ...r, badge: getStatusBadge(r.status) }));
     const totalPages = Math.ceil(total / limit);
@@ -77,7 +104,6 @@ const show = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Ambil data permohonan
     const [rows] = await db.query(
       `SELECT sr.*, s.name as student_name, s.regno as nim
        FROM student_requests sr
@@ -95,7 +121,6 @@ const show = async (req, res, next) => {
 
     const requestData = { ...rows[0], badge: getStatusBadge(rows[0].status) };
 
-    // Ambil dokumen referensi sesuai jenis surat
     let documents = null;
     if (requestData.request_type === "aktif") {
       const [docs] = await db.query(
@@ -121,10 +146,8 @@ const show = async (req, res, next) => {
   }
 };
 
-// --- Fungsi Baru: Cetak Laporan PDF ---
 const exportPdf = async (req, res, next) => {
   try {
-    // 1. Ambil data dari database (Permohonan yang sudah diproses/selesai/ditolak)
     const [rows] = await db.query(
       `SELECT sr.request_nunmber, sr.request_type, sr.status, sr.updated_at, s.name as student_name, s.regno as nim
        FROM student_requests sr
@@ -133,23 +156,18 @@ const exportPdf = async (req, res, next) => {
        ORDER BY sr.updated_at DESC`
     );
 
-    // 2. Inisialisasi Dokumen PDF
     const doc = new PDFDocument({ margin: 30, size: 'A4' });
 
-    // 3. Set Header Response agar langsung terdownload sebagai PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="Laporan_Riwayat_Surat.pdf"');
 
-    // 4. Alirkan (pipe) dokumen PDF langsung ke response browser
     doc.pipe(res);
 
-    // 5. Tambahkan Judul Laporan
     doc.font("Helvetica-Bold").fontSize(16).text("Laporan Riwayat Pemrosesan Surat", { align: "center" });
     doc.moveDown(0.5);
     doc.font("Helvetica").fontSize(10).text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')}`, { align: "center" });
     doc.moveDown(2);
 
-    // 6. Siapkan Data untuk Tabel
     const tableData = {
       headers: [
         { label: "No. Surat", property: "no", width: 100 },
@@ -160,7 +178,6 @@ const exportPdf = async (req, res, next) => {
         { label: "Tgl Diproses", property: "date", width: 80 }
       ],
       datas: rows.map(r => {
-        // Konversi status angka menjadi teks
         let statusText = "Menunggu";
         if(r.status === 1) statusText = "Diproses";
         if(r.status === 2) statusText = "Ditolak";
@@ -177,7 +194,6 @@ const exportPdf = async (req, res, next) => {
       })
     };
 
-    // 7. Gambar Tabel ke dalam PDF
     await doc.table(tableData, {
       prepareHeader: () => doc.font("Helvetica-Bold").fontSize(9),
       prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
@@ -185,7 +201,6 @@ const exportPdf = async (req, res, next) => {
       },
     });
 
-    // 8. Akhiri dan kirim dokumen
     doc.end();
 
   } catch (err) {

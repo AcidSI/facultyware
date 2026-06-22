@@ -59,3 +59,13 @@ typings/
 
 # next.js build output
 .next
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+# Abaikan skrip dan konfigurasi tes Playwright
+tests/
+playwright.config.js

@@ -82,8 +82,10 @@ const createPage = (req, res) => {
 };
 
 const store = async (req, res, next) => {
-  const { request_type, title, description } = req.body;
+  // 1. Tangkap variabel semester dan tahun_akademik dari formulir
+  const { request_type, title, description, semester, tahun_akademik } = req.body;
   const errors = [];
+  
 
   // ✅ Validasi server-side
   if (!request_type || !["aktif", "lulus"].includes(request_type)) {
@@ -113,7 +115,7 @@ const store = async (req, res, next) => {
       title: "Buat Permohonan Baru",
       user: req.session.username,
       errors,
-      old: { request_type, title, description }
+      old: { request_type, title, description, semester, tahun_akademik}
     });
   }
 
@@ -124,12 +126,23 @@ const store = async (req, res, next) => {
     // Insert ke student_requests
     const [result] = await db.query(
       `INSERT INTO student_requests
-       (request_nunmber, request_type, title, description, status, requested_by, requested_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())`,
-      [requestNumber, request_type, title.trim(), description?.trim() || null, STATUS.MENUNGGU, req.session.userId]
+       (request_nunmber, request_type, title, description, semester, tahun_akademik, status, requested_by, requested_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())`,
+      [
+        requestNumber, 
+        request_type, 
+        title.trim(), 
+        description?.trim() || null, 
+        semester || null,            // Masukkan semester
+        tahun_akademik || null,      // Masukkan tahun akademik
+        STATUS.MENUNGGU, 
+        req.session.userId
+      ]
     );
 
     const newRequestId = result.insertId;
+
+  
 
     // Insert ke tabel referensi sesuai jenis surat
     // Kolom checked_by & signed_by pakai placeholder employee ID = 1 (akan diisi admin nanti)
@@ -250,14 +263,16 @@ const downloadPdf = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // 1. Ambil data permohonan dan data mahasiswa dari database
-    const [rows] = await db.query(
-      `SELECT sr.*, s.name as student_name, s.regno as nim, s.department_id
-       FROM student_requests sr
-       JOIN students s ON sr.requested_by = s.id
-       WHERE sr.id = ? AND sr.status = ?`,
-      [id, STATUS.SELESAI]
-    );
+   const [rows] = await db.query(
+  `SELECT sr.*, s.name as student_name, s.regno as nim, 
+          d.name as jurusan, f.name as fakultas
+   FROM student_requests sr
+   JOIN students s ON sr.requested_by = s.id
+   LEFT JOIN departments d ON s.department_id = d.id
+   LEFT JOIN faculties f ON d.faculty_id = f.id
+   WHERE sr.id = ? AND sr.status = ?`,
+  [id, STATUS.SELESAI]
+);
 
     if (rows.length === 0) {
       return res.status(404).send("Surat belum selesai atau tidak ditemukan.");
@@ -265,61 +280,48 @@ const downloadPdf = async (req, res, next) => {
 
     const requestData = rows[0];
 
-  // 2. KUNCI TANGGAL: Ambil dari database (updated_at), BUKAN dari komputer saat ini
     const waktuDekanSetuju = requestData.updated_at;
     const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     const tanggalTtd = new Date(waktuDekanSetuju).toLocaleDateString('id-ID', dateOptions);
 
-    // 3. RAKIT ISI QR CODE: Masukkan detail lengkap beserta tanggal yang sudah dikunci
-    const qrPayload = `KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI
-UNIVERSITAS ANDALAS
+    const protocol = req.secure ? 'https' : 'http';
+    const qrPayload = `${protocol}://${req.headers.host}/verify/${requestData.request_nunmber}`;
 
-TANDA TANGAN ELEKTRONIK SAH
-----------------------------------
-Penandatangan : Dr. Eng. Lusi Susanti, M.Eng   
-NIP           : 197608152006042040 
-Waktu TTD     : ${tanggalTtd}
-Nomor Surat   : ${requestData.request_nunmber || '-'}
-Keperluan     : ${requestData.title || '-'}
-
-Keterangan: Dokumen ini diterbitkan dan disahkan secara elektronik melalui Sistem Facultyware. Tanda tangan ini memiliki kekuatan hukum yang sama dengan tanda tangan basah.`;
-
-    // Generate QR Code menjadi Buffer gambar (PNG) agar bisa dibaca oleh pdf-lib
     const qrCodeImage = await QRCode.toBuffer(qrPayload, {
-      errorCorrectionLevel: 'H', // Level High agar tetap terbaca meski teksnya banyak
+      errorCorrectionLevel: 'H',
       margin: 1,
       width: 150
     });
 
-    // 4. Load Template PDF Kosong 
     const templatePath = path.join(__dirname, '../public/template_surat_aktif.pdf');
     const existingPdfBytes = fs.readFileSync(templatePath);
     
-    // 5. Proses Injeksi Data ke dalam PDF
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
 
-    // Load font formal
     const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
     const textOptions = { size: 12, font: timesRomanFont };
 
-    // A. Menyisipkan Data Mahasiswa
-    firstPage.drawText(requestData.student_name, { x: 224, y: 528, ...textOptions });
+    firstPage.drawText(requestData.student_name, { x: 224, y: 529, ...textOptions });
     firstPage.drawText(requestData.nim, { x: 224, y: 515, ...textOptions }); 
     
-    // B. Menyisipkan Tanggal yang Sudah Dikunci
+    const infoJurusanFakultas = `${requestData.jurusan || '-'} / ${requestData.fakultas || '-'}`;
+    firstPage.drawText(infoJurusanFakultas, { x: 224, y: 501, ...textOptions }); 
+    
+    firstPage.drawText(requestData.semester || '-', { x: 224, y: 487, ...textOptions }); 
+    firstPage.drawText(requestData.tahun_akademik || '-', { x: 224, y: 473, ...textOptions }); 
+
     firstPage.drawText(tanggalTtd, { x: 400, y: 368, ...textOptions });
     
-    // C. Menyisipkan gambar QR Code Dekan
     const qrImage = await pdfDoc.embedPng(qrCodeImage);
     firstPage.drawImage(qrImage, {
-      x: 393,    // Geser sedikit ke kanan agar pas di area TTD
-      y: 270,    // Posisi vertikal di area tanda tangan bawah
-      width: 90, // Ukuran diperbesar dari 80 ke 90
+      x: 393,    
+      y: 270,    
+      width: 90, 
       height: 90,
     });
-    // 5. Simpan hasil akhir dan kirimkan sebagai file download ke browser
+
     const pdfBytes = await pdfDoc.save();
     
     res.setHeader('Content-Type', 'application/pdf');
@@ -329,7 +331,7 @@ Keterangan: Dokumen ini diterbitkan dan disahkan secara elektronik melalui Siste
   } catch (err) {
     next(err);
   }
-}; // <--- INI ADALAH PENUTUP FUNGSI downloadPdf. 
+};// <--- INI ADALAH PENUTUP FUNGSI downloadPdf. 
 
 
 // ─── FITUR 8: Notifikasi Mahasiswa (PASTIKAN BLOK INI ADA) ───
@@ -425,6 +427,33 @@ const getHistoryJson = async (req, res, next) => {
     });
   }
 };
+const verifyPublicDocument = async (req, res, next) => {
+  try {
+    const { token } = req.params;
 
+    const [rows] = await db.query(
+      `SELECT sr.*, s.name as student_name, s.regno as nim, 
+              d.name as jurusan, f.name as fakultas
+       FROM student_requests sr
+       JOIN students s ON sr.requested_by = s.id
+       LEFT JOIN departments d ON s.department_id = d.id
+       LEFT JOIN faculties f ON d.faculty_id = f.id
+       WHERE sr.request_nunmber = ?`,
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).render("verify_failed", { title: "Verifikasi Gagal" });
+    }
+
+    const requestData = rows[0];
+    res.render("verify_success", {
+      title: "Verifikasi Dokumen Sah",
+      request: requestData
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 // --- BARIS INI HARUS BERADA DI PALING BAWAH ---
-module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications, getHistoryJson };
+module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications, getHistoryJson,verifyPublicDocument};
