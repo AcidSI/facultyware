@@ -1,20 +1,11 @@
 const path = require("path");
 const fs = require("fs");
 
-// Buat folder upload jika belum ada
 const uploadDir = path.join(__dirname, "../public/uploads/requests");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-/**
- * Middleware upload sederhana tanpa library eksternal.
- * Menggunakan busboy (sudah built-in di Node.js 18+) via express built-in multipart,
- * TAPI karena project ini pakai express 4.x yang tidak handle multipart sendiri,
- * kita pakai multer yang sudah tersedia via npm.
- *
- * Catatan: multer perlu di-install: npm install multer
- */
 const multer = require("multer");
 
 const storage = multer.diskStorage({

@@ -1,14 +1,9 @@
-/**
- * Seeder ACL - buat roles & permissions untuk mahasiswa (student)
- * Jalankan dengan: node scripts/seed_acl.js
- */
 const db = require('../lib/db');
 
 async function seed() {
   try {
     const guardName = 'web';
 
-    // 1. Buat permissions yang dibutuhkan fitur mahasiswa
     const permissions = [
       'view-requests',
       'create-request',
@@ -24,7 +19,6 @@ async function seed() {
       );
     }
 
-    // 2. Buat role 'student'
     console.log("Membuat role 'student'...");
     await db.query(
       `INSERT IGNORE INTO roles (name, guard_name, created_at, updated_at)
@@ -32,7 +26,6 @@ async function seed() {
       [guardName]
     );
 
-    // 3. Hubungkan role student dengan semua permissions di atas
     console.log('Menghubungkan role student dengan permissions...');
     const [[studentRole]] = await db.query(
       `SELECT id FROM roles WHERE name = 'student' AND guard_name = ?`, [guardName]
@@ -50,7 +43,7 @@ async function seed() {
       );
     }
 
-    console.log('✅ Seeder ACL selesai!');
+    console.log('Seeder ACL selesai!');
     console.log('');
     console.log('Cara assign role ke user (jalankan di MySQL):');
     console.log(`  INSERT INTO model_has_roles (role_id, model_type, model_id)`);

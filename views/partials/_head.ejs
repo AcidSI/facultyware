@@ -95,20 +95,16 @@
     </aside>
 
     <main id="content" class="md:ml-[16rem]">
-      <%# ── Top Header Bar ── %>
       <header class="bg-background sticky inset-x-0 top-0 isolate flex shrink-0 items-center gap-2 border-b z-10">
         <div class="flex h-14 w-full items-center gap-3 px-4">
-          <%# Hamburger mobile %>
           <button type="button" onclick="toggleSidebar()" class="btn-sm-icon-ghost size-7 -ml-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
           </button>
-<%# Page title %>
           <span class="text-sm font-medium text-muted-foreground hidden md:block">
             <%= typeof title !== 'undefined' ? title : '' %>
           </span>
 
           <div class="ml-auto flex items-center gap-2">
-            <%# Dark mode toggle %>
             <button type="button" aria-label="Toggle dark mode"
               onclick="document.dispatchEvent(new CustomEvent('basecoat:theme'))"
               class="btn-icon-outline size-8">
@@ -120,7 +116,6 @@
               </span>
             </button>
 
-            <%# Tombol Notifikasi (Gabungan) %>
             <a href="/requests/notifications" hx-boost="true" class="relative flex items-center justify-center p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors" title="Notifikasi">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
@@ -134,7 +129,7 @@
               <% } %>
             </a>
 
-            <%# Profile chip di sebelah toggle tema %>
+
             <% if (typeof user !== 'undefined' && user) { %>
             <a href="/profile" hx-boost="true" class="flex items-center gap-2 pl-2 border-l hover:opacity-80 transition-opacity cursor-pointer">
   <div class="size-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold select-none">

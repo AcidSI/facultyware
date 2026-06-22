@@ -1,33 +1,22 @@
 const db = require("../lib/db");
 const path = require("path");
 const fs = require("fs");
-
-// Tambahan library baru untuk fitur PDF dan Barcode
 const { PDFDocument, StandardFonts } = require('pdf-lib');
 const QRCode = require('qrcode');
 
-/**
- * Konvensi Status (INT):
- * 0 = Menunggu (Pending)
- * 1 = Diverifikasi (sudah dicek admin, sedang diproses)
- * 2 = Ditolak
- * 3 = Selesai (surat sudah jadi)
- * 4 = Dibatalkan (oleh mahasiswa)
- */
 const STATUS = { MENUNGGU: 0, DIVERIFIKASI: 1, DITOLAK: 2, SELESAI: 3, DIBATALKAN: 4 };
 
 const getStatusBadge = (status) => {
   switch (status) {
     case STATUS.MENUNGGU:     return { label: "Menunggu",    class: "badge-outline text-yellow-600 border-yellow-600" };
     case STATUS.DIVERIFIKASI: return { label: "Diverifikasi", class: "badge bg-blue-500 text-white" };
-    case STATUS.DITOLAK:      return { label: "Ditolak",      class: "badge badge-destructive" };
-    case STATUS.SELESAI:      return { label: "Selesai",      class: "badge bg-green-500 text-white" };
-    case STATUS.DIBATALKAN:   return { label: "Dibatalkan",   class: "badge badge-secondary" };
-    default:                  return { label: "Unknown",      class: "badge badge-outline" };
+    case STATUS.DITOLAK:      return { label: "Ditolak",     class: "badge badge-destructive" };
+    case STATUS.SELESAI:      return { label: "Selesai",     class: "badge bg-green-500 text-white" };
+    case STATUS.DIBATALKAN:   return { label: "Dibatalkan",  class: "badge badge-secondary" };
+    default:                  return { label: "Unknown",     class: "badge badge-outline" };
   }
 };
 
-// ─── Fitur 2: Riwayat Permohonan (List + Pagination + Search) ─────────────────
 const index = async (req, res, next) => {
   try {
     const page    = parseInt(req.query.page) || 1;
@@ -71,7 +60,6 @@ const index = async (req, res, next) => {
   }
 };
 
-// ─── Fitur 1: Form Pengajuan (Create) ─────────────────────────────────────────
 const createPage = (req, res) => {
   res.render("requests/create", {
     title: "Buat Permohonan Baru",
@@ -82,12 +70,9 @@ const createPage = (req, res) => {
 };
 
 const store = async (req, res, next) => {
-  // 1. Tangkap variabel semester dan tahun_akademik dari formulir
   const { request_type, title, description, semester, tahun_akademik } = req.body;
   const errors = [];
   
-
-  // ✅ Validasi server-side
   if (!request_type || !["aktif", "lulus"].includes(request_type)) {
     errors.push("Jenis permohonan tidak valid.");
   }
@@ -98,14 +83,12 @@ const store = async (req, res, next) => {
     errors.push("Keperluan / judul surat terlalu panjang (maks 255 karakter).");
   }
 
-  // Validasi file KRS wajib ada
   const krsFile = req.files?.krs_file?.[0] ?? null;
   if (!krsFile) {
     errors.push("File KRS wajib diunggah.");
   }
 
   if (errors.length > 0) {
-    // Hapus file yang sudah terupload jika validasi gagal
     if (req.files) {
       Object.values(req.files).flat().forEach(f => {
         fs.unlink(f.path, () => {});
@@ -123,7 +106,6 @@ const store = async (req, res, next) => {
     const requestNumber = `REQ-${Date.now()}`;
     const additionalFile = req.files?.additional_file?.[0] ?? null;
 
-    // Insert ke student_requests
     const [result] = await db.query(
       `INSERT INTO student_requests
        (request_nunmber, request_type, title, description, semester, tahun_akademik, status, requested_by, requested_at, created_at, updated_at)
@@ -133,8 +115,8 @@ const store = async (req, res, next) => {
         request_type, 
         title.trim(), 
         description?.trim() || null, 
-        semester || null,            // Masukkan semester
-        tahun_akademik || null,      // Masukkan tahun akademik
+        semester || null,
+        tahun_akademik || null,
         STATUS.MENUNGGU, 
         req.session.userId
       ]
@@ -142,11 +124,6 @@ const store = async (req, res, next) => {
 
     const newRequestId = result.insertId;
 
-  
-
-    // Insert ke tabel referensi sesuai jenis surat
-    // Kolom checked_by & signed_by pakai placeholder employee ID = 1 (akan diisi admin nanti)
-    // student_study_plan_file = KRS, parent_decree_file = dokumen tambahan
     if (request_type === "aktif") {
       await db.query(
         `INSERT INTO student_request_active_references
@@ -165,7 +142,6 @@ const store = async (req, res, next) => {
 
     res.redirect("/requests");
   } catch (err) {
-    // Hapus file jika DB error
     if (req.files) {
       Object.values(req.files).flat().forEach(f => {
         fs.unlink(f.path, () => {});
@@ -175,7 +151,6 @@ const store = async (req, res, next) => {
   }
 };
 
-// ─── Fitur 3: Detail Permohonan ───────────────────────────────────────────────
 const show = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -197,7 +172,6 @@ const show = async (req, res, next) => {
 
     const requestData = { ...rows[0], badge: getStatusBadge(rows[0].status) };
 
-    // Ambil file berkas sesuai jenis
     let documents = null;
     if (requestData.request_type === "aktif") {
       const [docs] = await db.query(
@@ -223,12 +197,10 @@ const show = async (req, res, next) => {
   }
 };
 
-// ─── Fitur 3: Batalkan Permohonan ─────────────────────────────────────────────
 const cancel = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // ✅ PERBAIKAN: Cek affectedRows untuk tahu apakah batal berhasil
     const [result] = await db.query(
       `UPDATE student_requests
        SET status = ?, updated_at = NOW()
@@ -237,7 +209,6 @@ const cancel = async (req, res, next) => {
     );
 
     if (result.affectedRows === 0) {
-      // Permohonan tidak ditemukan atau statusnya sudah bukan "Menunggu"
       res.set("HX-Reswap", "none");
       return res.status(422).json({
         status: "error",
@@ -245,7 +216,6 @@ const cancel = async (req, res, next) => {
       });
     }
 
-    // Instruksikan HTMX redirect ke halaman list
     res.set("HX-Redirect", "/requests");
     res.status(200).end();
   } catch (err) {
@@ -253,26 +223,20 @@ const cancel = async (req, res, next) => {
   }
 };
 
-
-
-
-
-// ─── FITUR 4: Mahasiswa dapat mengunduh surat keterangan yang sudah ditandatangani ───
-// Penjelasan: Fungsi ini mencetak PDF dan menempelkan QR Code secara real-time
 const downloadPdf = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-   const [rows] = await db.query(
-  `SELECT sr.*, s.name as student_name, s.regno as nim, 
-          d.name as jurusan, f.name as fakultas
-   FROM student_requests sr
-   JOIN students s ON sr.requested_by = s.id
-   LEFT JOIN departments d ON s.department_id = d.id
-   LEFT JOIN faculties f ON d.faculty_id = f.id
-   WHERE sr.id = ? AND sr.status = ?`,
-  [id, STATUS.SELESAI]
-);
+    const [rows] = await db.query(
+      `SELECT sr.*, s.name as student_name, s.regno as nim, 
+              d.name as jurusan, f.name as fakultas
+       FROM student_requests sr
+       JOIN students s ON sr.requested_by = s.id
+       LEFT JOIN departments d ON s.department_id = d.id
+       LEFT JOIN faculties f ON d.faculty_id = f.id
+       WHERE sr.id = ? AND sr.status = ?`,
+      [id, STATUS.SELESAI]
+    );
 
     if (rows.length === 0) {
       return res.status(404).send("Surat belum selesai atau tidak ditemukan.");
@@ -331,13 +295,10 @@ const downloadPdf = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};// <--- INI ADALAH PENUTUP FUNGSI downloadPdf. 
+};
 
-
-// ─── FITUR 8: Notifikasi Mahasiswa (PASTIKAN BLOK INI ADA) ───
 const notifications = async (req, res, next) => {
   try {
-    // 1. Ambil permohonan yang ditolak (2) atau selesai (3)
     const [notifs] = await db.query(
       `SELECT id, request_nunmber, request_type, title, status, updated_at
        FROM student_requests
@@ -346,14 +307,12 @@ const notifications = async (req, res, next) => {
       [req.session.userId]
     );
 
-    // 2. Ubah angka badge menjadi 0 (Tandai sudah dibaca semua)
     await db.query(
       `UPDATE student_requests SET is_read = 1 
        WHERE requested_by = ? AND status IN (2, 3) AND is_read = 0`,
       [req.session.userId]
     );
 
-    // 3. Render ke halaman baru
     res.render("requests/notifications", {
       title: "Notifikasi",
       user: req.session.username,
@@ -364,13 +323,10 @@ const notifications = async (req, res, next) => {
   }
 };
 
-// --- Tambahkan ini di requestController.js ---
-
-// ─── Fitur Tambahan: JSON Riwayat Permohonan ─────────────────────────────────
 const getHistoryJson = async (req, res, next) => {
   try {
     const page    = parseInt(req.query.page) || 1;
-    const limit   = parseInt(req.query.limit) || 10; // Bisa diatur via query param
+    const limit   = parseInt(req.query.limit) || 10;
     const offset  = (page - 1) * limit;
     const search  = req.query.search || "";
 
@@ -397,7 +353,6 @@ const getHistoryJson = async (req, res, next) => {
       [req.session.userId, searchPattern, searchPattern, searchPattern, limit, offset]
     );
 
-    // Map data untuk menambahkan informasi badge/status yang lebih deskriptif
     const mappedRequests = requests.map(r => ({
       ...r,
       status_label: getStatusBadge(r.status).label
@@ -405,7 +360,6 @@ const getHistoryJson = async (req, res, next) => {
 
     const totalPages = Math.ceil(total / limit);
 
-    // Mengembalikan data dalam format JSON
     res.status(200).json({
       success: true,
       data: mappedRequests,
@@ -419,7 +373,6 @@ const getHistoryJson = async (req, res, next) => {
     });
 
   } catch (err) {
-    // Tangani error dengan format JSON juga
     res.status(500).json({
       success: false,
       message: "Terjadi kesalahan saat mengambil data riwayat permohonan.",
@@ -427,6 +380,7 @@ const getHistoryJson = async (req, res, next) => {
     });
   }
 };
+
 const verifyPublicDocument = async (req, res, next) => {
   try {
     const { token } = req.params;
@@ -455,5 +409,5 @@ const verifyPublicDocument = async (req, res, next) => {
     next(err);
   }
 };
-// --- BARIS INI HARUS BERADA DI PALING BAWAH ---
-module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications, getHistoryJson,verifyPublicDocument};
+
+module.exports = { index, createPage, store, show, cancel, downloadPdf, STATUS, getStatusBadge, notifications, getHistoryJson, verifyPublicDocument };

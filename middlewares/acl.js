@@ -1,6 +1,5 @@
 const db = require("../lib/db");
 
-// --- BIARKAN FUNGSI ASLI ANDA TETAP ADA ---
 const checkPermission = (requiredPermissions) => {
   return async (req, res, next) => {
     if (!req.session.userId) {
@@ -24,14 +23,12 @@ const checkPermission = (requiredPermissions) => {
         [req.session.userId, permissionsArray]
       );
 
-      // ==================== CCTV DEbugging ====================
       console.log("\n[CCTV POS SATPAM ACL] ==========================");
       console.log("1. User ID yg mencoba masuk :", req.session.userId);
       console.log("2. Halaman ini menagih KTA  :", permissionsArray);
       console.log("3. KTA yg dipunya User di DB:", rows.map(r => r.name));
       console.log("Hasil Putusan               :", rows.length > 0 ? "DIIZINKAN MASUK 🟢" : "TENDANG KELUAR 🔴");
       console.log("================================================\n");
-      // ========================================================
 
       if (rows.length > 0) {
         return next();
@@ -50,7 +47,7 @@ const checkPermission = (requiredPermissions) => {
     }
   };
 };
-// --- TAMBAHKAN FUNGSI BARU INI SEBAGAI PENGATUR LALU LINTAS ---
+
 const checkRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.session || !req.session.role) {
@@ -59,16 +56,13 @@ const checkRole = (...allowedRoles) => {
 
     const userRole = req.session.role.toLowerCase();
 
-    // Jika perannya sesuai dengan yang diizinkan rute, silakan masuk
     if (allowedRoles.includes(userRole)) {
       return next();
     }
 
-    // JIKA SALAH KAMAR: Jangan tampilkan Error, arahkan kembali dengan halus!
     if (userRole === 'admin') return res.redirect('/admin/requests');
     if (userRole === 'dekan' || userRole === 'wakil dekan') return res.redirect('/dekan/requests');
     
-    // Default tendang ke portal mahasiswa
     return res.redirect('/home');
   };
 };
